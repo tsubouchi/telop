@@ -35,10 +35,24 @@ const shareBtn = document.getElementById('share-btn');
 const copyLinkBtn = document.getElementById('copy-link-btn');
 const downloadBtn = document.getElementById('download-btn');
 const canvasContainer = document.getElementById('canvas-container');
+const cardTabs = document.querySelectorAll('.card-tab');
+const cardItems = document.querySelectorAll('.card-item');
+const uploadAreas = document.querySelectorAll('.upload-area');
+const cardImages = document.querySelectorAll('.card-image');
+const uploadInputs = document.querySelectorAll('.upload-input');
+const uploadCloseButtons = document.querySelectorAll('.upload-close');
+const telopContainers = document.querySelectorAll('.telop-container');
+
+// カード管理
+const cards = [
+  { id: 0, imageUrl: null, telops: [], selected: true },
+  { id: 1, imageUrl: null, telops: [], selected: false },
+  { id: 2, imageUrl: null, telops: [], selected: false },
+  { id: 3, imageUrl: null, telops: [], selected: false }
+];
 
 // 状態管理
 let selectedTelop = null;
-let telops = [];
 let telopIdCounter = 0;
 let isDragging = false;
 let dragStartX, dragStartY;
@@ -88,12 +102,6 @@ const fonts = [
 function init() {
   console.log('初期化処理を開始します');
   
-  // アップロードエリアの確認
-  console.log('アップロードエリア要素:', uploadArea);
-  if (!uploadArea) {
-    console.error('Error: アップロードエリア要素が見つかりません');
-  }
-  
   // フォントの選択肢を追加
   fonts.forEach(font => {
     const option = document.createElement('option');
@@ -113,13 +121,35 @@ function init() {
     presetContainer.appendChild(presetBtn);
   });
 
-  // イベントリスナー
-  uploadArea.addEventListener('dragover', handleDragOver);
-  uploadArea.addEventListener('dragleave', handleDragLeave);
-  uploadArea.addEventListener('drop', handleDrop);
-  uploadInput.addEventListener('change', handleUploadInputChange);
-  clearMediaBtn.addEventListener('click', clearMedia);
+  // カードタブのイベントリスナー
+  cardTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const cardId = parseInt(tab.dataset.cardId);
+      selectCard(cardId);
+    });
+  });
+
+  // アップロードエリアのイベントリスナー
+  uploadAreas.forEach(area => {
+    area.addEventListener('dragover', handleDragOver);
+    area.addEventListener('dragleave', handleDragLeave);
+    area.addEventListener('drop', handleDrop);
+  });
+
+  // ファイル選択ボタンのイベントリスナー
+  uploadInputs.forEach(input => {
+    input.addEventListener('change', handleUploadInputChange);
+  });
+
+  // クリアボタンのイベントリスナー
+  uploadCloseButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const cardId = parseInt(button.dataset.cardId);
+      clearCardMedia(cardId);
+    });
+  });
   
+  // テロップ関連のイベントリスナー
   addTelopBtn.addEventListener('click', addTelop);
   telopText.addEventListener('keypress', e => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -147,201 +177,172 @@ function init() {
   document.addEventListener('mousemove', handleMouseMove);
   document.addEventListener('mouseup', handleMouseUp);
   
-  video.addEventListener('loadedmetadata', handleVideoMetadata);
-  video.addEventListener('timeupdate', updateVideoProgress);
-  video.addEventListener('play', updatePlayState);
-  video.addEventListener('pause', updatePlayState);
-  video.addEventListener('ended', handleVideoEnded);
-  
-  playBtn.addEventListener('click', togglePlayPause);
-  pauseBtn.addEventListener('click', togglePlayPause);
-  progressBar.addEventListener('mousedown', startSeeking);
-  muteBtn.addEventListener('click', toggleMute);
-  volumeSlider.addEventListener('input', updateVolume);
-  fullscreenBtn.addEventListener('click', toggleFullscreen);
+  // 動画関連のイベントリスナーは、動画要素がある場合のみ追加
+  if (typeof video !== 'undefined' && video) {
+    video.addEventListener('loadedmetadata', handleVideoMetadata);
+    video.addEventListener('timeupdate', updateVideoProgress);
+    video.addEventListener('play', updatePlayState);
+    video.addEventListener('pause', updatePlayState);
+    video.addEventListener('ended', handleVideoEnded);
+    
+    // 再生コントロールのイベントリスナーも同様に条件付きで追加
+    if (playBtn) playBtn.addEventListener('click', togglePlayPause);
+    if (pauseBtn) pauseBtn.addEventListener('click', togglePlayPause);
+    if (progressBar) progressBar.addEventListener('mousedown', startSeeking);
+    if (muteBtn) muteBtn.addEventListener('click', toggleMute);
+    if (volumeSlider) volumeSlider.addEventListener('input', updateVolume);
+    if (fullscreenBtn) fullscreenBtn.addEventListener('click', toggleFullscreen);
+  }
   
   exportBtn.addEventListener('click', exportWithTelops);
   shareBtn.addEventListener('click', shareTelops);
   copyLinkBtn.addEventListener('click', copyLink);
   downloadBtn.addEventListener('click', downloadTelops);
   
-  image.addEventListener('load', handleImageLoad);
-  image.addEventListener('error', handleImageError);
+  // 画像要素があれば、そのイベントリスナーを追加
+  if (typeof image !== 'undefined' && image) {
+    image.addEventListener('load', handleImageLoad);
+    image.addEventListener('error', handleImageError);
+  }
 
   // フォントプレビューの更新
   telopText.addEventListener('input', updateFontPreview);
   updateFontPreview();
 }
 
-// ファイルドロップ処理
+// カード選択
+function selectCard(cardId) {
+  // カードの選択状態を更新
+  cards.forEach(card => {
+    card.selected = (card.id === cardId);
+  });
+  
+  // カードタブUIを更新
+  cardTabs.forEach(tab => {
+    const tabCardId = parseInt(tab.dataset.cardId);
+    tab.classList.toggle('active', tabCardId === cardId);
+  });
+  
+  // カードアイテムUIを更新
+  cardItems.forEach(item => {
+    const itemCardId = parseInt(item.dataset.cardId);
+    item.classList.toggle('active', itemCardId === cardId);
+  });
+  
+  // 選択されたカードのテロップリストを表示
+  updateTelopList();
+  
+  // 選択されたテロップをクリア
+  selectedTelop = null;
+  updateFontPreview();
+}
+
+// 現在選択中のカードを取得
+function getSelectedCard() {
+  return cards.find(card => card.selected);
+}
+
+// ドラッグオーバーの処理
 function handleDragOver(e) {
   e.preventDefault();
   e.stopPropagation();
-  console.log('dragover イベントが発生しました');
-  uploadArea.classList.add('drag-over');
+  e.currentTarget.classList.add('dragover');
 }
 
+// ドラッグ離脱の処理
 function handleDragLeave(e) {
   e.preventDefault();
   e.stopPropagation();
-  console.log('dragleave イベントが発生しました');
-  uploadArea.classList.remove('drag-over');
+  e.currentTarget.classList.remove('dragover');
 }
 
+// ドロップ処理
 function handleDrop(e) {
   e.preventDefault();
   e.stopPropagation();
-  console.log('drop イベントが発生しました');
-  uploadArea.classList.remove('drag-over');
+  
+  const uploadArea = e.currentTarget;
+  uploadArea.classList.remove('dragover');
+  
+  const cardId = parseInt(uploadArea.id.split('-')[2]);
   
   if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-    console.log('ファイルがドロップされました:', e.dataTransfer.files);
-    handleFiles(e.dataTransfer.files);
-  } else {
-    console.error('ドロップされたファイルが見つかりません');
+    const file = e.dataTransfer.files[0];
+    if (file.type.match('image.*')) {
+      loadCardImage(file, cardId);
+    }
   }
 }
 
+// ファイル選択変更処理
 function handleUploadInputChange(e) {
-  if (e.target.files.length > 0) {
-    handleFiles(e.target.files);
+  const input = e.currentTarget;
+  const cardId = parseInt(input.dataset.cardId);
+  
+  if (input.files && input.files.length > 0) {
+    const file = input.files[0];
+    if (file.type.match('image.*')) {
+      loadCardImage(file, cardId);
+    }
   }
 }
 
-// ファイル処理
-function handleFiles(files) {
-  console.log('ファイル処理開始', files);
-  if (!files || files.length === 0) {
-    console.error('処理するファイルがありません');
-    return;
+// カード画像の読み込み
+function loadCardImage(file, cardId) {
+  const card = cards.find(c => c.id === cardId);
+  if (!card) return;
+  
+  // 既存のURLを解放
+  if (card.imageUrl) {
+    URL.revokeObjectURL(card.imageUrl);
   }
   
-  const file = files[0];
-  const fileType = file.type;
-  console.log('ファイルタイプ:', fileType);
+  // 新しい画像URLを作成
+  card.imageUrl = URL.createObjectURL(file);
   
-  // 既存のメディアをクリア
-  clearMedia();
+  // カードの画像を更新
+  const cardImage = document.querySelector(`.card-image[data-card-id="${cardId}"]`);
+  cardImage.src = card.imageUrl;
+  cardImage.classList.add('has-image');
   
-  if (fileType.startsWith('image/')) {
-    console.log('画像ファイルを処理します');
-    // 画像ファイルの処理
-    if (imageUrl) {
-      URL.revokeObjectURL(imageUrl);
-    }
-    
-    try {
-      imageUrl = URL.createObjectURL(file);
-      console.log('画像URL作成:', imageUrl);
-      loadImage(imageUrl);
-      
-      // UIの更新
-      uploadArea.classList.add('has-media');
-      if (uploadPlaceholder) {
-        uploadPlaceholder.style.display = 'none';
-      }
-    } catch (error) {
-      console.error('画像の処理中にエラーが発生しました:', error);
-      alert('画像の処理中にエラーが発生しました。別の画像を試してください。');
-    }
-  } else if (fileType.startsWith('video/')) {
-    // 動画ファイルの処理
-    if (videoUrl) {
-      URL.revokeObjectURL(videoUrl);
-    }
-    
-    videoUrl = URL.createObjectURL(file);
-    loadVideo(videoUrl);
-    
-    uploadArea.classList.add('has-media');
-    uploadPlaceholder.style.display = 'none';
-  } else {
-    console.error('サポートされていないファイル形式:', fileType);
-    alert('サポートされていないファイル形式です。JPEG、PNGの画像ファイルをアップロードしてください。');
-  }
-}
-
-// 画像の読み込み
-function loadImage(src) {
-  console.log('画像を読み込みます', src);
-  image.src = src;
-  video.style.display = 'none';
-  image.style.display = 'block';
-  
-  // 再生コントロールを非表示
-  document.querySelector('.playback-controls').style.display = 'none';
-  document.querySelector('.progress-bar').style.display = 'none';
-  document.querySelector('.time-display').style.display = 'none';
-}
-
-// 画像が読み込まれた時の処理
-function handleImageLoad() {
-  console.log('画像が読み込まれました');
-  videoContainer.style.opacity = '1';
+  // アップロードエリアを非表示
+  const uploadArea = document.getElementById(`upload-area-${cardId}`);
   uploadArea.classList.add('has-media');
-  uploadPlaceholder.style.display = 'none';
+  
+  // 自動的にこのカードを選択
+  selectCard(cardId);
 }
 
-// 画像読み込みエラー時の処理
-function handleImageError() {
-  console.error('画像の読み込みに失敗しました');
-  alert('画像の読み込みに失敗しました。別の画像を試してください。');
-  clearMedia();
-}
-
-// 動画の読み込み
-function loadVideo(src) {
-  video.src = src;
-  image.style.display = 'none';
-  video.style.display = 'block';
+// カードメディアのクリア
+function clearCardMedia(cardId) {
+  const card = cards.find(c => c.id === cardId);
+  if (!card) return;
   
-  // 再生コントロールを表示
-  document.querySelector('.playback-controls').style.display = 'flex';
-  document.querySelector('.progress-bar').style.display = 'block';
-  document.querySelector('.time-display').style.display = 'flex';
-  
-  video.volume = volumeSlider.value;
-  
-  // 自動再生
-  video.play().catch(e => {
-    console.error('自動再生に失敗しました:', e);
-  });
-}
-
-// メディアのクリア
-function clearMedia() {
-  console.log('メディアをクリアします');
-  
-  if (videoUrl) {
-    URL.revokeObjectURL(videoUrl);
-    videoUrl = null;
+  // URLを解放
+  if (card.imageUrl) {
+    URL.revokeObjectURL(card.imageUrl);
+    card.imageUrl = null;
   }
   
-  if (imageUrl) {
-    URL.revokeObjectURL(imageUrl);
-    imageUrl = null;
-  }
+  // カードの画像をクリア
+  const cardImage = document.querySelector(`.card-image[data-card-id="${cardId}"]`);
+  cardImage.src = '';
+  cardImage.classList.remove('has-image');
   
-  video.pause();
-  video.src = '';
-  image.src = '';
-  image.style.display = 'none';
-  video.style.display = 'none';
-  
-  // テロップもクリア
-  telopContainer.innerHTML = '';
-  telops = [];
-  telopList.innerHTML = '';
-  selectedTelop = null;
-  
-  // アップロードエリアの表示を戻す
+  // アップロードエリアを表示
+  const uploadArea = document.getElementById(`upload-area-${cardId}`);
   uploadArea.classList.remove('has-media');
-  uploadPlaceholder.style.display = 'flex';
-  videoContainer.style.opacity = '0';
+  
+  // 対応するファイル入力をリセット
+  const fileInput = document.querySelector(`.upload-input[data-card-id="${cardId}"]`);
+  fileInput.value = '';
 }
 
 // テロップの追加
 function addTelop() {
+  const selectedCard = getSelectedCard();
+  if (!selectedCard) return;
+  
   const text = telopText.value.trim();
   if (!text) return;
   
@@ -363,11 +364,17 @@ function addTelop() {
     fontWeight,
     fontStyle,
     x: 50, // パーセント
-    y: 50  // パーセント
+    y: 50, // パーセント
+    cardId: selectedCard.id
   };
   
-  telops.push(telop);
+  // 現在選択中のカードにテロップを追加
+  selectedCard.telops.push(telop);
+  
+  // テロップを描画
   renderTelop(telop);
+  
+  // テロップリストに追加
   addToTelopList(telop);
   
   // フォームをクリア
@@ -380,6 +387,13 @@ function addTelop() {
 
 // テロップの描画
 function renderTelop(telop) {
+  // カードIDに対応するテロップコンテナを取得
+  const telopContainer = document.querySelector(`.telop-container[data-card-id="${telop.cardId}"]`);
+  if (!telopContainer) {
+    console.error(`カードID ${telop.cardId} のテロップコンテナが見つかりません`);
+    return;
+  }
+  
   // 既存のテロップを削除（更新の場合）
   const existingTelop = document.getElementById(`telop-${telop.id}`);
   if (existingTelop) {
@@ -400,8 +414,23 @@ function renderTelop(telop) {
   telopEl.style.top = `${telop.y}%`;
   telopEl.style.transform = 'translate(-50%, -50%)';
   telopEl.dataset.id = telop.id;
+  telopEl.dataset.cardId = telop.cardId;
   
   telopContainer.appendChild(telopEl);
+}
+
+// テロップリストを更新
+function updateTelopList() {
+  const selectedCard = getSelectedCard();
+  if (!selectedCard) return;
+  
+  // リストをクリア
+  telopList.innerHTML = '';
+  
+  // 選択中のカードのテロップのみを表示
+  selectedCard.telops.forEach(telop => {
+    addToTelopList(telop);
+  });
 }
 
 // テロップリストに追加
@@ -455,39 +484,46 @@ function selectTelop(id) {
   const telopItems = document.querySelectorAll('.telop-item');
   telopItems.forEach(item => item.classList.remove('active'));
   
-  // 新しいテロップを選択
-  selectedTelop = telops.find(t => t.id === id);
-  if (selectedTelop) {
-    const telopEl = document.getElementById(`telop-${id}`);
-    if (telopEl) {
-      telopEl.classList.add('selected');
+  // 選択中のカードのテロップから検索
+  const selectedCard = getSelectedCard();
+  if (selectedCard) {
+    selectedTelop = selectedCard.telops.find(t => t.id === id);
+    
+    if (selectedTelop) {
+      const telopEl = document.getElementById(`telop-${id}`);
+      if (telopEl) {
+        telopEl.classList.add('selected');
+      }
+      
+      const telopItem = document.querySelector(`.telop-item[data-id="${id}"]`);
+      if (telopItem) {
+        telopItem.classList.add('active');
+      }
+      
+      // フォームに値を設定
+      telopText.value = selectedTelop.text;
+      telopColor.value = selectedTelop.color;
+      telopBgColor.value = selectedTelop.bgColor;
+      telopFontSize.value = parseInt(selectedTelop.fontSize);
+      telopFont.value = selectedTelop.font;
+      
+      // フォントスタイルボタンの状態を更新
+      boldBtn.classList.toggle('active', selectedTelop.fontWeight === 'bold');
+      italicBtn.classList.toggle('active', selectedTelop.fontStyle === 'italic');
+      
+      updateFontPreview();
     }
-    
-    const telopItem = document.querySelector(`.telop-item[data-id="${id}"]`);
-    if (telopItem) {
-      telopItem.classList.add('active');
-    }
-    
-    // フォームに値を設定
-    telopText.value = selectedTelop.text;
-    telopColor.value = selectedTelop.color;
-    telopBgColor.value = selectedTelop.bgColor;
-    telopFontSize.value = parseInt(selectedTelop.fontSize);
-    telopFont.value = selectedTelop.font;
-    
-    // フォントスタイルボタンの状態を更新
-    boldBtn.classList.toggle('active', selectedTelop.fontWeight === 'bold');
-    italicBtn.classList.toggle('active', selectedTelop.fontStyle === 'italic');
-    
-    updateFontPreview();
   }
 }
 
 // テロップの削除
 function deleteTelop(id) {
-  const index = telops.findIndex(t => t.id === id);
+  const selectedCard = getSelectedCard();
+  if (!selectedCard) return;
+  
+  const index = selectedCard.telops.findIndex(t => t.id === id);
   if (index !== -1) {
-    telops.splice(index, 1);
+    selectedCard.telops.splice(index, 1);
     
     const telopEl = document.getElementById(`telop-${id}`);
     if (telopEl) {
@@ -534,17 +570,19 @@ function updateFontPreview() {
   fontPreview.style.fontStyle = italicBtn.classList.contains('active') ? 'italic' : 'normal';
 }
 
-// フォントサイズの増加
+// フォントサイズ増加
 function increaseFontSize() {
   const currentSize = parseInt(telopFontSize.value);
-  telopFontSize.value = Math.min(currentSize + 2, 72);
+  const newSize = Math.min(currentSize + 2, 72);
+  telopFontSize.value = newSize;
   updateTelopStyle();
 }
 
-// フォントサイズの減少
+// フォントサイズ減少
 function decreaseFontSize() {
   const currentSize = parseInt(telopFontSize.value);
-  telopFontSize.value = Math.max(currentSize - 2, 10);
+  const newSize = Math.max(currentSize - 2, 10);
+  telopFontSize.value = newSize;
   updateTelopStyle();
 }
 
@@ -619,9 +657,17 @@ function applyPreset(preset) {
 // マウスドラッグでテロップを移動
 function handleMouseDown(e) {
   if (e.target.classList.contains('telop')) {
+    const selectedCard = getSelectedCard();
+    if (!selectedCard) return;
+
+    const telopId = parseInt(e.target.dataset.id);
+    const telopCardId = parseInt(e.target.dataset.cardId);
+    
+    // 選択中のカードのテロップでない場合は何もしない
+    if (telopCardId !== selectedCard.id) return;
+    
     e.preventDefault();
     isDragging = true;
-    const telopId = parseInt(e.target.dataset.id);
     selectTelop(telopId);
     
     dragStartX = e.clientX;
@@ -634,18 +680,24 @@ function handleMouseDown(e) {
 function handleMouseMove(e) {
   if (!isDragging || !selectedTelop) return;
   
-  const containerRect = telopContainer.getBoundingClientRect();
-  const dx = e.clientX - dragStartX;
-  const dy = e.clientY - dragStartY;
+  const deltaX = e.clientX - dragStartX;
+  const deltaY = e.clientY - dragStartY;
   
-  // パーセント換算
-  const percentX = (dx / containerRect.width) * 100;
-  const percentY = (dy / containerRect.height) * 100;
-  
-  selectedTelop.x = Math.max(0, Math.min(100, dragTelopStartX + percentX));
-  selectedTelop.y = Math.max(0, Math.min(100, dragTelopStartY + percentY));
-  
-  renderTelop(selectedTelop);
+  // カード画像のコンテナを基準に相対的な位置を計算
+  const selectedCard = getSelectedCard();
+  if (selectedCard) {
+    const cardImageContainer = document.querySelector(`.card-item[data-card-id="${selectedCard.id}"] .card-image-container`);
+    const containerRect = cardImageContainer.getBoundingClientRect();
+    
+    // パーセント単位での移動量を計算
+    const percentX = (deltaX / containerRect.width) * 100;
+    const percentY = (deltaY / containerRect.height) * 100;
+    
+    selectedTelop.x = Math.max(0, Math.min(100, dragTelopStartX + percentX));
+    selectedTelop.y = Math.max(0, Math.min(100, dragTelopStartY + percentY));
+    
+    renderTelop(selectedTelop);
+  }
 }
 
 function handleMouseUp() {
@@ -752,70 +804,47 @@ function toggleFullscreen() {
 
 // テロップをキャンバスに描画
 function renderToCanvas() {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  
-  // キャンバスのサイズを設定
-  let width, height;
-  let displayWidth, displayHeight;
-  
-  if (image.style.display !== 'none' && image.src) {
-    // 画像の場合
-    width = image.naturalWidth;
-    height = image.naturalHeight;
-    
-    // 表示サイズを取得
-    const imageRect = image.getBoundingClientRect();
-    displayWidth = imageRect.width;
-    displayHeight = imageRect.height;
-  } else if (video.style.display !== 'none' && video.src) {
-    // 動画の場合
-    width = video.videoWidth;
-    height = video.videoHeight;
-    
-    // 表示サイズを取得
-    const videoRect = video.getBoundingClientRect();
-    displayWidth = videoRect.width;
-    displayHeight = videoRect.height;
-  } else {
-    // メディアがない場合
-    const containerRect = videoContainer.getBoundingClientRect();
-    width = containerRect.width;
-    height = containerRect.height;
-    displayWidth = width;
-    displayHeight = height;
+  const selectedCard = getSelectedCard();
+  if (!selectedCard || !selectedCard.imageUrl) {
+    throw new Error('画像がアップロードされていません');
   }
   
-  // プレビューと同じアスペクト比を維持
+  // 新しいキャンバスを作成
+  const canvas = document.createElement('canvas');
+  
+  // 画像を読み込んでサイズを取得
+  const img = new Image();
+  img.src = selectedCard.imageUrl;
+  
+  // 表示サイズを取得（実際の表示領域のサイズ）
+  const cardImageContainer = document.querySelector(`.card-item[data-card-id="${selectedCard.id}"] .card-image-container`);
+  const displayRect = cardImageContainer.getBoundingClientRect();
+  const displayWidth = displayRect.width;
+  const displayHeight = displayRect.height;
+  
+  // キャンバスサイズを設定（高品質な出力のため、実際の画像サイズを使用）
+  const width = img.naturalWidth;
+  const height = img.naturalHeight;
   canvas.width = width;
   canvas.height = height;
   
-  // 背景（画像または動画のフレーム）を描画
-  if (image.style.display !== 'none' && image.src) {
-    ctx.drawImage(image, 0, 0, width, height);
-  } else if (video.style.display !== 'none' && video.src) {
-    ctx.drawImage(video, 0, 0, width, height);
-  } else {
-    // 背景が無い場合は黒で塗りつぶす
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, width, height);
-  }
+  // コンテキストを取得
+  const ctx = canvas.getContext('2d');
   
-  // DOM上のテロップ要素をもとに描画する
-  telops.forEach(telop => {
+  // 背景色を設定して塗りつぶし
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, width, height);
+  
+  // 画像を描画
+  ctx.drawImage(img, 0, 0, width, height);
+  
+  // 選択中のカードのテロップを描画
+  selectedCard.telops.forEach(telop => {
     ctx.save();
     
     // 表示サイズと実際のサイズの比率を計算
     const scaleX = width / displayWidth;
     const scaleY = height / displayHeight;
-    
-    // DOM上の実際のテロップ要素を取得
-    const telopEl = document.getElementById(`telop-${telop.id}`);
-    if (!telopEl) return;
-    
-    // テロップ要素のサイズと位置を取得
-    const telopRect = telopEl.getBoundingClientRect();
-    const containerRect = telopContainer.getBoundingClientRect();
     
     // 位置をパーセントからピクセルに変換
     const x = (telop.x / 100) * width;
@@ -868,7 +897,7 @@ function renderToCanvas() {
     // 各行のテキストを描画
     ctx.fillStyle = telop.color;
     lines.forEach((line, i) => {
-      const lineY = y - (totalTextHeight / 2) + (i * lineHeight) + (lineHeight / 2);
+      const lineY = y - (lines.length - 1) * lineHeight / 2 + i * lineHeight;
       ctx.fillText(line, x, lineY);
     });
     
@@ -878,8 +907,14 @@ function renderToCanvas() {
   return canvas;
 }
 
-// テロップ付きの画像/動画をエクスポート
+// テロップ付きの画像をエクスポート
 function exportWithTelops() {
+  const selectedCard = getSelectedCard();
+  if (!selectedCard || !selectedCard.imageUrl) {
+    alert('画像がアップロードされていません');
+    return;
+  }
+  
   const canvas = renderToCanvas();
   
   // キャンバスを画像に変換
@@ -892,6 +927,12 @@ function exportWithTelops() {
 
 // テロップをシェア
 function shareTelops() {
+  const selectedCard = getSelectedCard();
+  if (!selectedCard || !selectedCard.imageUrl) {
+    alert('画像がアップロードされていません');
+    return;
+  }
+  
   // Web Share API が利用可能な場合
   if (navigator.share) {
     const canvas = renderToCanvas();
@@ -934,6 +975,12 @@ function copyLink() {
 
 // テロップ付き画像をダウンロード
 function downloadTelops() {
+  const selectedCard = getSelectedCard();
+  if (!selectedCard || !selectedCard.imageUrl) {
+    alert('画像がアップロードされていません');
+    return;
+  }
+  
   const canvas = renderToCanvas();
   const dataUrl = canvas.toDataURL('image/png');
   
@@ -963,6 +1010,20 @@ function toggleBold() {
 function toggleItalic() {
   italicBtn.classList.toggle('active');
   updateTelopStyle();
+}
+
+// 画像が読み込まれた時の処理
+function handleImageLoad() {
+  console.log('画像が読み込まれました');
+  videoContainer.style.opacity = '1';
+  uploadArea.classList.add('has-media');
+  uploadPlaceholder.style.display = 'none';
+}
+
+// 画像読み込みエラー時の処理
+function handleImageError() {
+  console.error('画像の読み込みに失敗しました');
+  alert('画像の読み込みに失敗しました。別の画像を試してください。');
 }
 
 // ページ読み込み時に初期化

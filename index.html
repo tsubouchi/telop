@@ -16,26 +16,100 @@
     </div>
   </header>
 
+  <!-- カード選択UI -->
+  <div class="card-selector">
+    <div class="card-tabs">
+      <button class="card-tab active" data-card-id="0">カード 1</button>
+      <button class="card-tab" data-card-id="1">カード 2</button>
+      <button class="card-tab" data-card-id="2">カード 3</button>
+      <button class="card-tab" data-card-id="3">カード 4</button>
+    </div>
+  </div>
+
   <div class="main-container">
     <div class="preview-container">
-      <div class="upload-area" id="upload-area">
-        <div id="upload-placeholder">
-          <div class="upload-icon">📸</div>
-          <div class="upload-text">画像をここにドラッグ＆ドロップ</div>
-          <div class="media-info">サポート形式: JPEG, PNG</div>
-          <label class="upload-btn">
-            ファイルを選択
-            <input type="file" id="upload-input" accept="image/*" style="display: none;">
-          </label>
+      <!-- カードエリア -->
+      <div class="cards-container">
+        <!-- カード1 -->
+        <div class="card-item active" data-card-id="0">
+          <div class="upload-area" id="upload-area-0">
+            <div class="upload-placeholder">
+              <div class="upload-icon">📸</div>
+              <div class="upload-text">画像をここにドラッグ＆ドロップ</div>
+              <div class="media-info">サポート形式: JPEG, PNG</div>
+              <label class="upload-btn">
+                ファイルを選択
+                <input type="file" class="upload-input" accept="image/*" data-card-id="0" style="display: none;">
+              </label>
+            </div>
+            <button class="upload-close" data-card-id="0">×</button>
+          </div>
+          <div class="card-image-container">
+            <img class="card-image" alt="" data-card-id="0">
+            <div class="telop-container" data-card-id="0"></div>
+          </div>
+        </div>
+
+        <!-- カード2 -->
+        <div class="card-item" data-card-id="1">
+          <div class="upload-area" id="upload-area-1">
+            <div class="upload-placeholder">
+              <div class="upload-icon">📸</div>
+              <div class="upload-text">画像をここにドラッグ＆ドロップ</div>
+              <div class="media-info">サポート形式: JPEG, PNG</div>
+              <label class="upload-btn">
+                ファイルを選択
+                <input type="file" class="upload-input" accept="image/*" data-card-id="1" style="display: none;">
+              </label>
+            </div>
+            <button class="upload-close" data-card-id="1">×</button>
+          </div>
+          <div class="card-image-container">
+            <img class="card-image" alt="" data-card-id="1">
+            <div class="telop-container" data-card-id="1"></div>
+          </div>
+        </div>
+
+        <!-- カード3 -->
+        <div class="card-item" data-card-id="2">
+          <div class="upload-area" id="upload-area-2">
+            <div class="upload-placeholder">
+              <div class="upload-icon">📸</div>
+              <div class="upload-text">画像をここにドラッグ＆ドロップ</div>
+              <div class="media-info">サポート形式: JPEG, PNG</div>
+              <label class="upload-btn">
+                ファイルを選択
+                <input type="file" class="upload-input" accept="image/*" data-card-id="2" style="display: none;">
+              </label>
+            </div>
+            <button class="upload-close" data-card-id="2">×</button>
+          </div>
+          <div class="card-image-container">
+            <img class="card-image" alt="" data-card-id="2">
+            <div class="telop-container" data-card-id="2"></div>
+          </div>
+        </div>
+
+        <!-- カード4 -->
+        <div class="card-item" data-card-id="3">
+          <div class="upload-area" id="upload-area-3">
+            <div class="upload-placeholder">
+              <div class="upload-icon">📸</div>
+              <div class="upload-text">画像をここにドラッグ＆ドロップ</div>
+              <div class="media-info">サポート形式: JPEG, PNG</div>
+              <label class="upload-btn">
+                ファイルを選択
+                <input type="file" class="upload-input" accept="image/*" data-card-id="3" style="display: none;">
+              </label>
+            </div>
+            <button class="upload-close" data-card-id="3">×</button>
+          </div>
+          <div class="card-image-container">
+            <img class="card-image" alt="" data-card-id="3">
+            <div class="telop-container" data-card-id="3"></div>
+          </div>
+        </div>
       </div>
-        <button id="clear-media-btn" class="upload-close">×</button>
-      </div>
-      <div id="video-container">
-        <img id="image" alt="">
-        <video id="video" muted></video>
-      </div>
-      <div id="canvas-container"></div>
-      <div class="telop-container"></div>
     </div>
 
     <div class="controls-container">
