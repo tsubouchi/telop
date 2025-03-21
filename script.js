@@ -75,7 +75,13 @@ const telopPresets = [
   { name: 'グラデーションオレンジ', color: '#ff9900', bgColor: 'rgba(255, 153, 0, 0.3)', fontSize: '30px', font: '"ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", sans-serif' },
   { name: 'ゲーミング', color: '#00ff00', bgColor: '#000000', fontSize: '26px', font: 'monospace' },
   { name: 'TikTok風', color: '#ffffff', bgColor: 'rgba(0, 0, 0, 0.7)', fontSize: '32px', font: '"游ゴシック", "Yu Gothic", YuGothic, sans-serif' },
-  { name: 'バズる見出し', color: '#ff3333', bgColor: 'rgba(255, 255, 255, 0.8)', fontSize: '40px', font: '"メイリオ", Meiryo, sans-serif' }
+  { name: 'バズる見出し', color: '#ff3333', bgColor: 'rgba(255, 255, 255, 0.8)', fontSize: '40px', font: '"メイリオ", Meiryo, sans-serif' },
+  // 漫画吹き出し風スタイル
+  { name: '普通の会話', color: '#000000', bgColor: '#ffffff', fontSize: '18px', font: "'Comic Sans MS', 'Comic Sans', cursive", fontWeight: 'normal', fontStyle: 'normal' },
+  { name: '叫び声', color: '#ff0000', bgColor: '#ffff00', fontSize: '24px', font: "'Comic Sans MS', 'Comic Sans', cursive", fontWeight: 'bold', fontStyle: 'normal' },
+  { name: '内心の声', color: '#333333', bgColor: '#f0f0f0', fontSize: '16px', font: "'M PLUS Rounded 1c', sans-serif", fontWeight: 'normal', fontStyle: 'italic' },
+  { name: '悪役セリフ', color: '#ffffff', bgColor: '#660000', fontSize: '20px', font: "'Noto Sans JP', sans-serif", fontWeight: 'bold', fontStyle: 'normal' },
+  { name: 'ナレーション', color: '#000080', bgColor: 'rgba(255, 255, 255, 0.7)', fontSize: '18px', font: "'Kosugi Maru', sans-serif", fontWeight: 'normal', fontStyle: 'normal' }
 ];
 
 // フォントの選択肢
