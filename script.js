@@ -72,6 +72,14 @@ const fonts = [
 
 // 初期化
 function init() {
+  console.log('初期化処理を開始します');
+  
+  // アップロードエリアの確認
+  console.log('アップロードエリア要素:', uploadArea);
+  if (!uploadArea) {
+    console.error('Error: アップロードエリア要素が見つかりません');
+  }
+  
   // フォントの選択肢を追加
   fonts.forEach(font => {
     const option = document.createElement('option');
@@ -150,23 +158,28 @@ function init() {
 function handleDragOver(e) {
   e.preventDefault();
   e.stopPropagation();
+  console.log('dragover イベントが発生しました');
   uploadArea.classList.add('drag-over');
 }
 
 function handleDragLeave(e) {
   e.preventDefault();
   e.stopPropagation();
+  console.log('dragleave イベントが発生しました');
   uploadArea.classList.remove('drag-over');
 }
 
 function handleDrop(e) {
   e.preventDefault();
   e.stopPropagation();
+  console.log('drop イベントが発生しました');
   uploadArea.classList.remove('drag-over');
   
-  if (e.dataTransfer.files.length > 0) {
-    uploadInput.files = e.dataTransfer.files;
+  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    console.log('ファイルがドロップされました:', e.dataTransfer.files);
     handleFiles(e.dataTransfer.files);
+  } else {
+    console.error('ドロップされたファイルが見つかりません');
   }
 }
 
@@ -179,10 +192,14 @@ function handleUploadInputChange(e) {
 // ファイル処理
 function handleFiles(files) {
   console.log('ファイル処理開始', files);
-  if (!files || files.length === 0) return;
+  if (!files || files.length === 0) {
+    console.error('処理するファイルがありません');
+    return;
+  }
   
   const file = files[0];
   const fileType = file.type;
+  console.log('ファイルタイプ:', fileType);
   
   // 既存のメディアをクリア
   clearMedia();
@@ -194,11 +211,20 @@ function handleFiles(files) {
       URL.revokeObjectURL(imageUrl);
     }
     
-    imageUrl = URL.createObjectURL(file);
-    loadImage(imageUrl);
-    
-    uploadArea.classList.add('has-media');
-    uploadPlaceholder.style.display = 'none';
+    try {
+      imageUrl = URL.createObjectURL(file);
+      console.log('画像URL作成:', imageUrl);
+      loadImage(imageUrl);
+      
+      // UIの更新
+      uploadArea.classList.add('has-media');
+      if (uploadPlaceholder) {
+        uploadPlaceholder.style.display = 'none';
+      }
+    } catch (error) {
+      console.error('画像の処理中にエラーが発生しました:', error);
+      alert('画像の処理中にエラーが発生しました。別の画像を試してください。');
+    }
   } else if (fileType.startsWith('video/')) {
     // 動画ファイルの処理
     if (videoUrl) {
@@ -211,7 +237,8 @@ function handleFiles(files) {
     uploadArea.classList.add('has-media');
     uploadPlaceholder.style.display = 'none';
   } else {
-    alert('サポートされていないファイル形式です。画像または動画ファイルをアップロードしてください。');
+    console.error('サポートされていないファイル形式:', fileType);
+    alert('サポートされていないファイル形式です。JPEG、PNGの画像ファイルをアップロードしてください。');
   }
 }
 
@@ -877,4 +904,7 @@ function formatTime(seconds) {
 }
 
 // ページ読み込み時に初期化
-document.addEventListener('DOMContentLoaded', init); 
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOMContentLoaded イベントが発火しました');
+  init();
+}); 
