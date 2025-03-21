@@ -180,6 +180,105 @@ function init() {
     btn.addEventListener('click', () => positionTelop(btn.dataset.position));
   });
   
+  // テキスト配置ボタンのイベントリスナー設定
+  // 水平方向の配置
+  document.getElementById('align-left-btn').addEventListener('click', () => {
+    if (!selectedTelop) return;
+    
+    // 同じグループのボタンから'active'クラスを削除
+    document.getElementById('align-left-btn').classList.remove('active');
+    document.getElementById('align-center-btn').classList.remove('active');
+    document.getElementById('align-right-btn').classList.remove('active');
+    
+    // クリックされたボタンに'active'クラスを追加
+    document.getElementById('align-left-btn').classList.add('active');
+    
+    // テロップのプロパティを更新
+    selectedTelop.textAlign = 'left';
+    updateTelopStyle();
+  });
+  
+  document.getElementById('align-center-btn').addEventListener('click', () => {
+    if (!selectedTelop) return;
+    
+    // 同じグループのボタンから'active'クラスを削除
+    document.getElementById('align-left-btn').classList.remove('active');
+    document.getElementById('align-center-btn').classList.remove('active');
+    document.getElementById('align-right-btn').classList.remove('active');
+    
+    // クリックされたボタンに'active'クラスを追加
+    document.getElementById('align-center-btn').classList.add('active');
+    
+    // テロップのプロパティを更新
+    selectedTelop.textAlign = 'center';
+    updateTelopStyle();
+  });
+  
+  document.getElementById('align-right-btn').addEventListener('click', () => {
+    if (!selectedTelop) return;
+    
+    // 同じグループのボタンから'active'クラスを削除
+    document.getElementById('align-left-btn').classList.remove('active');
+    document.getElementById('align-center-btn').classList.remove('active');
+    document.getElementById('align-right-btn').classList.remove('active');
+    
+    // クリックされたボタンに'active'クラスを追加
+    document.getElementById('align-right-btn').classList.add('active');
+    
+    // テロップのプロパティを更新
+    selectedTelop.textAlign = 'right';
+    updateTelopStyle();
+  });
+  
+  // 垂直方向の配置
+  document.getElementById('valign-top-btn').addEventListener('click', () => {
+    if (!selectedTelop) return;
+    
+    // 同じグループのボタンから'active'クラスを削除
+    document.getElementById('valign-top-btn').classList.remove('active');
+    document.getElementById('valign-middle-btn').classList.remove('active');
+    document.getElementById('valign-bottom-btn').classList.remove('active');
+    
+    // クリックされたボタンに'active'クラスを追加
+    document.getElementById('valign-top-btn').classList.add('active');
+    
+    // テロップのプロパティを更新
+    selectedTelop.verticalAlign = 'top';
+    updateTelopStyle();
+  });
+  
+  document.getElementById('valign-middle-btn').addEventListener('click', () => {
+    if (!selectedTelop) return;
+    
+    // 同じグループのボタンから'active'クラスを削除
+    document.getElementById('valign-top-btn').classList.remove('active');
+    document.getElementById('valign-middle-btn').classList.remove('active');
+    document.getElementById('valign-bottom-btn').classList.remove('active');
+    
+    // クリックされたボタンに'active'クラスを追加
+    document.getElementById('valign-middle-btn').classList.add('active');
+    
+    // テロップのプロパティを更新
+    selectedTelop.verticalAlign = 'middle';
+    updateTelopStyle();
+  });
+  
+  document.getElementById('valign-bottom-btn').addEventListener('click', () => {
+    if (!selectedTelop) return;
+    
+    // 同じグループのボタンから'active'クラスを削除
+    document.getElementById('valign-top-btn').classList.remove('active');
+    document.getElementById('valign-middle-btn').classList.remove('active');
+    document.getElementById('valign-bottom-btn').classList.remove('active');
+    
+    // クリックされたボタンに'active'クラスを追加
+    document.getElementById('valign-bottom-btn').classList.add('active');
+    
+    // テロップのプロパティを更新
+    selectedTelop.verticalAlign = 'bottom';
+    updateTelopStyle();
+  });
+  
   document.addEventListener('mousedown', handleMouseDown);
   document.addEventListener('mousemove', handleMouseMove);
   document.addEventListener('mouseup', handleMouseUp);
@@ -372,8 +471,15 @@ function addTelop() {
     fontStyle,
     x: 50, // パーセント
     y: 50, // パーセント
-    cardId: selectedCard.id
+    cardId: selectedCard.id,
+    textAlign: 'left',   // デフォルトの水平揃え
+    verticalAlign: 'top' // デフォルトの垂直揃え
   };
+  
+  // 追加のクラスがある場合は適用（吹き出しスタイルなど）
+  if (currentExtraClasses) {
+    telop.extraClasses = currentExtraClasses;
+  }
   
   // 現在選択中のカードにテロップを追加
   selectedCard.telops.push(telop);
@@ -421,6 +527,12 @@ function renderTelop(telop) {
   telopEl.textContent = telop.text;
   telopEl.style.color = telop.color;
   telopEl.style.backgroundColor = telop.bgColor;
+  
+  // 吹き出しの三角形用のカスタム変数を設定（背景色を使用）
+  if (telop.extraClasses && telop.extraClasses.includes('bubble')) {
+    telopEl.style.setProperty('--triangle-color', telop.bgColor);
+  }
+  
   telopEl.style.fontSize = telop.fontSize;
   telopEl.style.fontFamily = telop.font;
   telopEl.style.fontWeight = telop.fontWeight;
@@ -428,6 +540,33 @@ function renderTelop(telop) {
   telopEl.style.left = `${telop.x}%`;
   telopEl.style.top = `${telop.y}%`;
   telopEl.style.transform = 'translate(-50%, -50%)';
+  
+  // テキスト配置スタイルを適用
+  if (telop.textAlign) {
+    telopEl.style.textAlign = telop.textAlign;
+  }
+
+  // 垂直方向の配置スタイルを適用（CSSクラスを使用）
+  if (telop.verticalAlign === 'middle') {
+    telopEl.style.display = 'flex';
+    telopEl.style.flexDirection = 'column';
+    telopEl.style.justifyContent = 'center';
+    telopEl.style.height = 'auto';
+    telopEl.style.minHeight = '50px';
+  } else if (telop.verticalAlign === 'bottom') {
+    telopEl.style.display = 'flex';
+    telopEl.style.flexDirection = 'column';
+    telopEl.style.justifyContent = 'flex-end';
+    telopEl.style.height = 'auto';
+    telopEl.style.minHeight = '50px';
+  } else { // top
+    telopEl.style.display = 'flex';
+    telopEl.style.flexDirection = 'column';
+    telopEl.style.justifyContent = 'flex-start';
+    telopEl.style.height = 'auto';
+    telopEl.style.minHeight = '50px';
+  }
+  
   telopEl.dataset.id = telop.id;
   telopEl.dataset.cardId = telop.cardId;
   
@@ -525,6 +664,17 @@ function selectTelop(id) {
       // フォントスタイルボタンの状態を更新
       boldBtn.classList.toggle('active', selectedTelop.fontWeight === 'bold');
       italicBtn.classList.toggle('active', selectedTelop.fontStyle === 'italic');
+      
+      // テキスト配置ボタンの状態を更新
+      // 水平方向の配置
+      document.getElementById('align-left-btn').classList.toggle('active', selectedTelop.textAlign === 'left' || !selectedTelop.textAlign);
+      document.getElementById('align-center-btn').classList.toggle('active', selectedTelop.textAlign === 'center');
+      document.getElementById('align-right-btn').classList.toggle('active', selectedTelop.textAlign === 'right');
+      
+      // 垂直方向の配置
+      document.getElementById('valign-top-btn').classList.toggle('active', selectedTelop.verticalAlign === 'top' || !selectedTelop.verticalAlign);
+      document.getElementById('valign-middle-btn').classList.toggle('active', selectedTelop.verticalAlign === 'middle');
+      document.getElementById('valign-bottom-btn').classList.toggle('active', selectedTelop.verticalAlign === 'bottom');
       
       updateFontPreview();
     }
@@ -904,25 +1054,191 @@ function renderToCanvas() {
     }
     
     const totalTextHeight = lines.length * lineHeight;
+    const padding = fontSize * 0.3; // パディングを少し大きめに
     
-    // 背景を描画
-    if (telop.bgColor !== 'transparent') {
-      const padding = fontSize * 0.2;
-      ctx.fillStyle = telop.bgColor;
-      ctx.fillRect(
-        x - maxTextWidth / 2 - padding,
-        y - totalTextHeight / 2 + (lineHeight / 2 - fontSize) - padding,
-        maxTextWidth + padding * 2,
-        totalTextHeight + padding * 2
-      );
+    // フォントスタイルの設定
+    let fontStyle = "";
+    if (telop.fontStyle === 'italic') fontStyle += "italic ";
+    if (telop.fontWeight === 'bold') fontStyle += "bold ";
+    
+    ctx.font = `${fontStyle}${fontSize}px ${telop.font}`;
+    ctx.fillStyle = telop.color;
+    ctx.textBaseline = "top";
+    
+    // 追加: テキスト配置の設定
+    let textX = x;
+    let textY = y;
+    
+    // 水平方向の配置設定
+    switch (telop.textAlign) {
+      case "center":
+        ctx.textAlign = "center";
+        textX = x + maxTextWidth / 2;
+        break;
+      case "right":
+        ctx.textAlign = "right";
+        textX = x + maxTextWidth - padding;
+        break;
+      case "left":
+      default:
+        ctx.textAlign = "left";
+        textX = x + padding;
+        break;
     }
     
-    // 各行のテキストを描画
-    ctx.fillStyle = telop.color;
-    lines.forEach((line, i) => {
-      const lineY = y - (lines.length - 1) * lineHeight / 2 + i * lineHeight;
-      ctx.fillText(line, x, lineY);
-    });
+    // 垂直方向の配置設定
+    switch (telop.verticalAlign) {
+      case "middle":
+        ctx.textBaseline = "middle";
+        textY = y + totalTextHeight / 2;
+        break;
+      case "bottom":
+        ctx.textBaseline = "bottom";
+        textY = y + totalTextHeight - padding;
+        break;
+      case "top":
+      default:
+        ctx.textBaseline = "top";
+        textY = y + padding;
+        break;
+    }
+    
+    // テキストの描画
+    ctx.fillText(telop.text, textX, textY);
+    
+    // 吹き出しの三角形用のカスタム変数を設定（背景色を使用）
+    if (telop.extraClasses && telop.extraClasses.includes('bubble')) {
+      ctx.fillStyle = telop.bgColor;
+      
+      // 吹き出しの形状を描画（角丸の長方形）
+      if (telop.extraClasses.includes('bubble')) {
+        const cornerRadius = fontSize * 1.2; // 角丸の半径を大きめに設定
+        
+        // たまご型の吹き出し形状のため、位置と大きさを調整
+        if (telop.extraClasses.includes('bubble-right') || telop.extraClasses.includes('bubble-left')) {
+          // たまご型に近い形状を描画
+          ctx.beginPath();
+          
+          // 上部は細く、下部は広く
+          const topWidth = maxTextWidth * 0.8;
+          const bottomWidth = maxTextWidth * 1.0;
+          
+          // 上下の高さは変えない
+          const height = totalTextHeight + padding * 2;
+          
+          // 中心からのオフセット
+          const offsetY = fontSize * 0.1; // わずかに下に重心を移す
+          
+          // 楕円を描画（パスを手動で作成）
+          // このパラメータを調整することでより卵形に近づけられる
+          const centerX = x;
+          const centerY = y + offsetY;
+          
+          // 上部の楕円弧
+          ctx.ellipse(
+            centerX, centerY - height/5, // 中心点を少し上に
+            topWidth/2 + padding, height/2 - offsetY, // X半径、Y半径
+            0, 0, Math.PI, true
+          );
+          
+          // 下部の楕円弧
+          ctx.ellipse(
+            centerX, centerY + height/6, // 中心点を少し下に
+            bottomWidth/2 + padding, height/1.8 + offsetY, // X半径、Y半径
+            0, Math.PI, Math.PI * 2, true
+          );
+          
+          ctx.closePath();
+          ctx.fillStyle = telop.bgColor;
+          ctx.fill();
+          
+          // 吹き出しの三角形部分を描画
+          const triangleSize = fontSize * 0.5;
+          
+          if (telop.extraClasses.includes('bubble-right')) {
+            // 右向き三角形
+            ctx.fillStyle = telop.bgColor; // 背景色と同じ色を使用
+            ctx.beginPath();
+            const triangleY = y + fontSize * 0.2; // 三角形の位置を少し下に
+            ctx.moveTo(x + bottomWidth/2 + padding, triangleY); // 吹き出しの右端中央
+            ctx.lineTo(x + bottomWidth/2 + padding + triangleSize, triangleY - triangleSize / 2); // 右の頂点
+            ctx.lineTo(x + bottomWidth/2 + padding + triangleSize, triangleY + triangleSize / 2); // 右の下部
+            ctx.closePath();
+            ctx.fill();
+          } else if (telop.extraClasses.includes('bubble-left')) {
+            // 左向き三角形
+            ctx.fillStyle = telop.bgColor; // 背景色と同じ色を使用
+            ctx.beginPath();
+            const triangleY = y + fontSize * 0.2; // 三角形の位置を少し下に
+            ctx.moveTo(x - bottomWidth/2 - padding, triangleY); // 吹き出しの左端中央
+            ctx.lineTo(x - bottomWidth/2 - padding - triangleSize, triangleY - triangleSize / 2); // 左の頂点
+            ctx.lineTo(x - bottomWidth/2 - padding - triangleSize, triangleY + triangleSize / 2); // 左の下部
+            ctx.closePath();
+            ctx.fill();
+          }
+        } else if (telop.extraClasses.includes('bubble-top')) {
+          // 上向き三角形
+          const cornerRadius = fontSize * 1.2;
+          
+          // 楕円形の吹き出し
+          ctx.beginPath();
+          const ellipseX = x;
+          const ellipseY = y;
+          const radiusX = maxTextWidth/2 + padding;
+          const radiusY = totalTextHeight/2 + padding;
+          
+          ctx.ellipse(ellipseX, ellipseY, radiusX, radiusY, 0, 0, Math.PI * 2);
+          ctx.fillStyle = telop.bgColor;
+          ctx.fill();
+          
+          // 三角形部分
+          ctx.fillStyle = telop.bgColor; // 背景色と同じ色を使用
+          ctx.beginPath();
+          ctx.moveTo(x, y - radiusY); // 吹き出しの上部中央
+          ctx.lineTo(x - fontSize * 0.3, y - radiusY - fontSize * 0.6); // 上の左部
+          ctx.lineTo(x + fontSize * 0.3, y - radiusY - fontSize * 0.6); // 上の右部
+          ctx.closePath();
+          ctx.fill();
+        } else if (telop.extraClasses.includes('bubble-bottom')) {
+          // 下向き三角形
+          const cornerRadius = fontSize * 1.2;
+          
+          // 楕円形の吹き出し
+          ctx.beginPath();
+          const ellipseX = x;
+          const ellipseY = y;
+          const radiusX = maxTextWidth/2 + padding;
+          const radiusY = totalTextHeight/2 + padding;
+          
+          ctx.ellipse(ellipseX, ellipseY, radiusX, radiusY, 0, 0, Math.PI * 2);
+          ctx.fillStyle = telop.bgColor;
+          ctx.fill();
+          
+          // 三角形部分
+          ctx.fillStyle = telop.bgColor; // 背景色と同じ色を使用
+          ctx.beginPath();
+          ctx.moveTo(x, y + radiusY); // 吹き出しの下部中央
+          ctx.lineTo(x - fontSize * 0.3, y + radiusY + fontSize * 0.6); // 下の左部
+          ctx.lineTo(x + fontSize * 0.3, y + radiusY + fontSize * 0.6); // 下の右部
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          // その他の吹き出し（通常の楕円）
+          ctx.beginPath();
+          ctx.ellipse(x, y, maxTextWidth/2 + padding, totalTextHeight/2 + padding, 0, 0, Math.PI * 2);
+          ctx.fillStyle = telop.bgColor;
+          ctx.fill();
+        }
+      } else {
+        // 通常の背景
+        ctx.fillRect(
+          x - maxTextWidth / 2 - padding,
+          y - totalTextHeight / 2 - padding,
+          maxTextWidth + padding * 2,
+          totalTextHeight + padding * 2
+        );
+      }
+    }
     
     ctx.restore();
   });

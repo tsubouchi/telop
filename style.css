@@ -150,57 +150,94 @@ img#image {
 
 /* 吹き出しスタイル */
 .telop.bubble {
-  border-radius: 10px;
+  border-radius: 50% / 60%;
   position: relative;
-  padding: 10px 15px;
+  padding: 15px 20px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+  max-width: 80%;
+  text-align: left;
+  line-height: 1.4;
+  --triangle-color: inherit;
 }
 
 /* 右向き吹き出し（右側に三角） */
+.telop.bubble-right {
+  margin-right: 20px;
+  border-top-right-radius: 70% 60%;
+  border-bottom-right-radius: 30% 80%;
+  border-top-left-radius: 70% 60%;
+  border-bottom-left-radius: 30% 80%;
+}
+
 .telop.bubble-right:after {
   content: '';
   position: absolute;
   right: -15px;
-  top: 50%;
+  top: 60%;
   transform: translateY(-50%);
-  border-width: 10px 0 10px 15px;
+  width: 0;
+  height: 0;
   border-style: solid;
-  border-color: transparent transparent transparent inherit;
+  border-width: 10px 0 10px 15px;
+  border-color: transparent transparent transparent var(--triangle-color);
 }
 
 /* 左向き吹き出し（左側に三角） */
+.telop.bubble-left {
+  margin-left: 20px;
+  border-top-right-radius: 70% 60%;
+  border-bottom-right-radius: 30% 80%;
+  border-top-left-radius: 70% 60%;
+  border-bottom-left-radius: 30% 80%;
+}
+
 .telop.bubble-left:after {
   content: '';
   position: absolute;
   left: -15px;
-  top: 50%;
+  top: 60%;
   transform: translateY(-50%);
-  border-width: 10px 15px 10px 0;
+  width: 0;
+  height: 0;
   border-style: solid;
-  border-color: transparent inherit transparent transparent;
+  border-width: 10px 15px 10px 0;
+  border-color: transparent var(--triangle-color) transparent transparent;
 }
 
 /* 上向き吹き出し（上部に三角） */
+.telop.bubble-top {
+  margin-top: 20px;
+}
+
 .telop.bubble-top:after {
   content: '';
   position: absolute;
   top: -15px;
   left: 50%;
   transform: translateX(-50%);
-  border-width: 0 10px 15px 10px;
+  width: 0;
+  height: 0;
   border-style: solid;
-  border-color: transparent transparent inherit transparent;
+  border-width: 0 10px 15px 10px;
+  border-color: transparent transparent var(--triangle-color) transparent;
 }
 
 /* 下向き吹き出し（下部に三角） */
+.telop.bubble-bottom {
+  margin-bottom: 20px;
+}
+
 .telop.bubble-bottom:after {
   content: '';
   position: absolute;
   bottom: -15px;
   left: 50%;
   transform: translateX(-50%);
-  border-width: 15px 10px 0 10px;
+  width: 0;
+  height: 0;
   border-style: solid;
-  border-color: inherit transparent transparent transparent;
+  border-width: 15px 10px 0 10px;
+  border-color: var(--triangle-color) transparent transparent transparent;
 }
 
 .telop.selected {
@@ -676,35 +713,109 @@ input[type="color"] {
 
 .font-style-controls {
   display: flex;
-  gap: 0.5rem;
+  gap: 5px;
+  margin-top: 5px;
 }
 
 .style-btn {
-  padding: 0.3rem 0.7rem;
-  background-color: var(--panel);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-weight: bold;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ccc;
+  background: white;
+  border-radius: 3px;
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .style-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #f0f0f0;
 }
 
 .style-btn.active {
-  background-color: var(--primary);
-  border-color: var(--primary);
+  background-color: #007bff;
+  color: white;
+  border-color: #0069d9;
 }
 
-#bold-btn {
-  font-weight: bold;
+/* テキスト配置コントロール */
+.text-align-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 5px;
 }
 
-#italic-btn {
-  font-style: italic;
+.align-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.align-group label {
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+}
+
+.align-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+/* アライメントアイコン */
+#align-left-btn .align-icon {
+  text-align: left;
+  margin-left: -5px;
+}
+
+#align-center-btn .align-icon {
+  text-align: center;
+}
+
+#align-right-btn .align-icon {
+  text-align: right;
+  margin-right: -5px;
+}
+
+#valign-top-btn .align-icon {
+  transform: rotate(90deg);
+  margin-top: -5px;
+}
+
+#valign-middle-btn .align-icon {
+  transform: rotate(90deg);
+}
+
+#valign-bottom-btn .align-icon {
+  transform: rotate(90deg);
+  margin-bottom: -5px;
+}
+
+/* テロップのテキスト配置 */
+.telop.align-left {
+  text-align: left;
+}
+
+.telop.align-center {
+  text-align: center;
+}
+
+.telop.align-right {
+  text-align: right;
+}
+
+.telop.valign-top {
+  vertical-align: top;
+}
+
+.telop.valign-middle {
+  vertical-align: middle;
+}
+
+.telop.valign-bottom {
+  vertical-align: bottom;
 }
 
 /* カード選択UI */
