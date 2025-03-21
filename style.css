@@ -1,0 +1,607 @@
+:root {
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --background: #0f0f0f;
+  --text: #ffffff;
+  --panel: #1a1a1a;
+  --border: #333333;
+  --accent: #f43f5e;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .main-container {
+    flex-direction: row;
+  }
+}
+
+.preview-container {
+  flex: 2;
+  position: relative;
+  background-color: #000;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  aspect-ratio: 9/16;
+  max-height: 80vh;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#video-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+img#image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
+#canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.telop-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.telop {
+  position: absolute;
+  padding: 0.5rem;
+  cursor: move;
+  user-select: none;
+  pointer-events: auto;
+  transition: transform 0.1s ease;
+  z-index: 20;
+}
+
+.telop.selected {
+  outline: 2px dashed var(--primary);
+}
+
+.controls-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 300px;
+}
+
+.panel {
+  background-color: var(--panel);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+}
+
+.panel-title {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #ccc;
+}
+
+input[type="text"],
+textarea,
+select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border);
+  background-color: #2a2a2a;
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-danger {
+  background-color: var(--accent);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #e11d48;
+}
+
+.style-controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.color-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+input[type="color"] {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 0.25rem;
+  background: none;
+  cursor: pointer;
+}
+
+.telop-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.telop-item {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  margin-bottom: 0.5rem;
+  background-color: #2a2a2a;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.telop-item.active {
+  background-color: var(--primary);
+}
+
+.telop-item-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.telop-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.timeline {
+  height: 100px;
+  background-color: var(--panel);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-track {
+  height: 30px;
+  position: relative;
+  margin-bottom: 0.5rem;
+  background-color: #2a2a2a;
+  border-radius: 0.25rem;
+}
+
+.timeline-item {
+  position: absolute;
+  height: 100%;
+  background-color: var(--primary);
+  border-radius: 0.25rem;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  min-width: 50px;
+}
+
+.timeline-ruler {
+  height: 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-marker {
+  position: absolute;
+  height: 10px;
+  width: 1px;
+  background-color: #666;
+}
+
+.timeline-marker.major {
+  height: 15px;
+  width: 2px;
+  background-color: #999;
+}
+
+.timeline-marker-label {
+  position: absolute;
+  font-size: 0.625rem;
+  color: #999;
+  transform: translateX(-50%);
+}
+
+.preset-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.preset-btn {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border);
+  background-color: #2a2a2a;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.preset-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.export-panel {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.suggestions {
+  margin-top: 0.5rem;
+}
+
+.suggestion-item {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  margin-bottom: 0.5rem;
+  background-color: #2a2a2a;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.font-preview {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.position-controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.position-btn {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border);
+  background-color: #2a2a2a;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.position-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.playback-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.playback-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.playback-btn:hover {
+  background-color: var(--primary-dark);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 5px;
+  background-color: #2a2a2a;
+  border-radius: 2.5px;
+  margin-top: 1rem;
+  position: relative;
+  cursor: pointer;
+}
+
+.progress {
+  height: 100%;
+  background-color: var(--primary);
+  border-radius: 2.5px;
+  width: 0;
+}
+
+.progress-handle {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  background-color: var(--primary);
+  border-radius: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 0.5rem;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.hidden {
+  display: none;
+}
+
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: 0.5rem;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: all 0.3s;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.upload-area.drag-over {
+  border-color: var(--primary);
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.upload-area.has-media {
+  border-style: solid;
+  border-color: var(--primary);
+}
+
+#upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: opacity 0.3s;
+}
+
+.upload-area.has-media #upload-placeholder {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.upload-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+.upload-text {
+  margin-bottom: 1rem;
+}
+
+.upload-btn {
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.upload-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.media-info {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.upload-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: var(--text);
+  font-size: 1.25rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 20;
+  transition: opacity 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area.has-media .upload-close {
+  opacity: 0.7;
+}
+
+.upload-close:hover {
+  opacity: 1 !important;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.media-controls {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.upload-area.hidden + #video-container {
+  opacity: 1;
+} 
