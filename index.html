@@ -783,7 +783,7 @@
       
       // エクスポートボタンのクリックイベント
       exportBtn.addEventListener('click', function() {
-        alert('エクスポート機能は現在開発中です。実際のアプリケーションでは、テロップ付きの動画をダウンロードできるようになります。');
+        exportVideo();
       });
       
       // Three.jsの初期化
@@ -1033,6 +1033,151 @@
         const secs = Math.floor(seconds % 60);
         
         return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+      
+      // テロップ付き動画のエクスポート
+      function exportVideo() {
+        // ローディングオーバーレイを表示
+        loadingOverlay.classList.remove('hidden');
+        
+        // 動画を一時停止
+        video.pause();
+        
+        // キャンバスの作成
+        const exportCanvas = document.createElement('canvas');
+        const ctx = exportCanvas.getContext('2d');
+        
+        // キャンバスサイズを動画と同じサイズに設定
+        exportCanvas.width = video.videoWidth;
+        exportCanvas.height = video.videoHeight;
+        
+        // MediaRecorderの設定
+        const chunks = [];
+        let mediaRecorder;
+        
+        try {
+          const stream = exportCanvas.captureStream(30); // 30fpsでキャプチャ
+          mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm;codecs=vp9',
+            videoBitsPerSecond: 5000000 // 5Mbps
+          });
+        } catch (e) {
+          try {
+            // フォールバック: VP8コーデック
+            const stream = exportCanvas.captureStream(30);
+            mediaRecorder = new MediaRecorder(stream, {
+              mimeType: 'video/webm;codecs=vp8',
+              videoBitsPerSecond: 5000000
+            });
+          } catch (e) {
+            alert('お使いのブラウザはこの機能をサポートしていません。');
+            loadingOverlay.classList.add('hidden');
+            return;
+          }
+        }
+        
+        // データが利用可能になったときの処理
+        mediaRecorder.ondataavailable = function(e) {
+          chunks.push(e.data);
+        };
+        
+        // 録画完了時の処理
+        mediaRecorder.onstop = function() {
+          // Blobの作成
+          const blob = new Blob(chunks, { type: 'video/webm' });
+          
+          // ダウンロードリンクの作成
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'telop_video.webm';
+          document.body.appendChild(a);
+          a.click();
+          
+          // クリーンアップ
+          setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            loadingOverlay.classList.add('hidden');
+          }, 100);
+        };
+        
+        // 録画開始
+        mediaRecorder.start();
+        
+        // 元の動画の位置を保存
+        const originalTime = video.currentTime;
+        video.currentTime = 0;
+        
+        // 動画のメタデータが読み込まれたときの処理
+        video.addEventListener('loadeddata', function onLoadedData() {
+          // 録画のフレームレンダリング処理
+          const renderFrame = () => {
+            // 動画が終了した場合、録画を停止
+            if (video.currentTime >= video.duration) {
+              mediaRecorder.stop();
+              video.removeEventListener('loadeddata', onLoadedData);
+              return;
+            }
+            
+            // キャンバスに動画フレームを描画
+            ctx.drawImage(video, 0, 0, exportCanvas.width, exportCanvas.height);
+            
+            // テロップを描画
+            telops.forEach(telop => {
+              // テロップのスタイルを設定
+              ctx.font = `${telop.fontSize}px ${telop.fontFamily}`;
+              ctx.fillStyle = telop.textColor;
+              ctx.textAlign = telop.textAlign;
+              
+              // 背景色の描画
+              const lines = telop.text.split('\n');
+              const lineHeight = telop.fontSize * 1.2;
+              
+              lines.forEach((line, index) => {
+                // テキストの位置計算
+                let textX = telop.x;
+                if (telop.textAlign === 'center') {
+                  textX += exportCanvas.width / (videoContainer.clientWidth / 100);
+                } else if (telop.textAlign === 'right') {
+                  textX += exportCanvas.width / (videoContainer.clientWidth / 200);
+                }
+                
+                const textY = telop.y + (index * lineHeight);
+                
+                // テキスト幅の計算
+                const textWidth = ctx.measureText(line).width;
+                
+                // 背景の描画
+                ctx.globalAlpha = telop.bgOpacity;
+                ctx.fillStyle = telop.bgColor;
+                
+                if (telop.textAlign === 'center') {
+                  ctx.fillRect(textX - textWidth / 2 - 5, textY - lineHeight + 5, textWidth + 10, lineHeight);
+                } else if (telop.textAlign === 'right') {
+                  ctx.fillRect(textX - textWidth - 5, textY - lineHeight + 5, textWidth + 10, lineHeight);
+                } else {
+                  ctx.fillRect(textX - 5, textY - lineHeight + 5, textWidth + 10, lineHeight);
+                }
+                
+                // テキストの描画
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = telop.textColor;
+                ctx.fillText(line, textX, textY);
+              });
+            });
+            
+            // 次のフレームへ
+            video.currentTime += 1/30; // 30fpsでフレームを進める
+            setTimeout(renderFrame, 0);
+          };
+          
+          // フレームのレンダリング開始
+          renderFrame();
+        });
+        
+        // 動画再生（フレーム進行のため）
+        video.currentTime = 0;
       }
       
       // 初期テロップの追加
