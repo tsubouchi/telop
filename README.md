@@ -9,6 +9,7 @@
 - ドラッグ＆ドロップでテロップ位置を調整
 - テロッププリセットの提供
 - 直感的なUI操作
+- テロップ付き動画のダウンロード機能
 
 ## 使い方
 
@@ -17,13 +18,40 @@
 3. スタイル設定パネルでテロップのスタイルをカスタマイズ
 4. ドラッグ＆ドロップでテロップの位置を調整
 5. プレビューで確認
-6. 「エクスポート」ボタンでテロップ付き動画を保存（開発中）
+6. 「エクスポート」ボタンでテロップ付き動画をダウンロード
+
+## デモサイト
+
+[https://telop.vercel.app/](https://telop.vercel.app/)
 
 ## 技術スタック
 
 - HTML/CSS/JavaScript
 - Three.js
+- Canvas API / MediaRecorder API（動画エクスポート機能）
 
 ## デプロイ
 
-このプロジェクトはVercelを使用してデプロイします。 
+このプロジェクトはVercelを使用してデプロイしています。
+
+### CI/CD設定
+
+GitHubのmainブランチに変更がプッシュされると、自動的にVercelへデプロイされるCI/CD設定を導入しています。
+
+詳細な設定手順については[CICD_SETUP.md](CICD_SETUP.md)を参照してください。
+
+## 開発環境のセットアップ
+
+```bash
+# リポジトリのクローン
+git clone https://github.com/tsubouchi/telop.git
+cd telop
+
+# 開発サーバーの起動（Vercel CLIを使用する場合）
+npm install
+npm run dev
+```
+
+## ライセンス
+
+MIT 

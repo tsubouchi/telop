@@ -1,0 +1,30 @@
+{
+  "name": "telop-editor",
+  "version": "1.0.0",
+  "description": "シンプルで直感的な動画テロップ編集ツール",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required for static HTML'",
+    "deploy": "vercel deploy --prod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tsubouchi/telop.git"
+  },
+  "keywords": [
+    "telop",
+    "video",
+    "editor",
+    "caption"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tsubouchi/telop/issues"
+  },
+  "homepage": "https://github.com/tsubouchi/telop#readme",
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  }
+} 
