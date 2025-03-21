@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>テロップエディタ</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --background: #0f0f0f;
+      --text: #ffffff;
+      --panel: #1a1a1a;
+      --border: #333333;
+      --accent: #f43f5e;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      padding: 1rem;
+      gap: 1rem;
+    }
+
+    @media (min-width: 1024px) {
+      .main-container {
+        flex-direction: row;
+      }
+    }
+
+    .preview-container {
+      flex: 2;
+      position: relative;
+      background-color: #000;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      aspect-ratio: 9/16;
+      max-height: 80vh;
+      margin: 0 auto;
+    }
+
+    #video-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .telop-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .telop {
+      position: absolute;
+      padding: 0.5rem;
+      cursor: move;
+      user-select: none;
+      pointer-events: auto;
+      transition: transform 0.1s ease;
+    }
+
+    .telop.selected {
+      outline: 2px dashed var(--primary);
+    }
+
+    .controls-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-width: 300px;
+    }
+
+    .panel {
+      background-color: var(--panel);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      color: #ccc;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      border: 1px solid var(--border);
+      background-color: #2a2a2a;
+      color: var(--text);
+      font-size: 0.875rem;
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      border: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-danger {
+      background-color: var(--accent);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #e11d48;
+    }
+
+    .style-controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    input[type="color"] {
+      width: 2rem;
+      height: 2rem;
+      border: none;
+      border-radius: 0.25rem;
+      background: none;
+      cursor: pointer;
+    }
+
+    .telop-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .telop-item {
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      margin-bottom: 0.5rem;
+      background-color: #2a2a2a;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .telop-item.active {
+      background-color: var(--primary);
+    }
+
+    .telop-item-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+
+    .telop-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .timeline {
+      height: 100px;
+      background-color: var(--panel);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .timeline-track {
+      height: 30px;
+      position: relative;
+      margin-bottom: 0.5rem;
+      background-color: #2a2a2a;
+      border-radius: 0.25rem;
+    }
+
+    .timeline-item {
+      position: absolute;
+      height: 100%;
+      background-color: var(--primary);
+      border-radius: 0.25rem;
+      padding: 0 0.5rem;
+      display: flex;
+      align-items: center;
+      font-size: 0.75rem;
+      cursor: pointer;
+      min-width: 50px;
+    }
+
+    .timeline-ruler {
+      height: 20px;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .timeline-marker {
+      position: absolute;
+      height: 10px;
+      width: 1px;
+      background-color: #666;
+    }
+
+    .timeline-marker.major {
+      height: 15px;
+      width: 2px;
+      background-color: #999;
+    }
+
+    .timeline-marker-label {
+      position: absolute;
+      font-size: 0.625rem;
+      color: #999;
+      transform: translateX(-50%);
+    }
+
+    .preset-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .preset-btn {
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      border: 1px solid var(--border);
+      background-color: #2a2a2a;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    .preset-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .export-panel {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .suggestions {
+      margin-top: 0.5rem;
+    }
+
+    .suggestion-item {
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      margin-bottom: 0.5rem;
+      background-color: #2a2a2a;
+      cursor: pointer;
+    }
+
+    .suggestion-item:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .font-preview {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .position-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .position-btn {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.25rem;
+      border: 1px solid var(--border);
+      background-color: #2a2a2a;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .position-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .playback-controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .playback-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .playback-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 5px;
+      background-color: #2a2a2a;
+      border-radius: 2.5px;
+      margin-top: 1rem;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .progress {
+      height: 100%;
+      background-color: var(--primary);
+      border-radius: 2.5px;
+      width: 0;
+    }
+
+    .progress-handle {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      background-color: var(--primary);
+      border-radius: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+    }
+
+    .time-display {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #999;
+      margin-top: 0.5rem;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">テロップエディタ</div>
+    <div>
+      <button id="export-btn" class="btn btn-primary">エクスポート</button>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="preview-container">
+      <div id="video-container">
+        <video id="video" loop muted playsinline></video>
+        <div id="canvas-container"></div>
+        <div class="telop-container" id="telop-container"></div>
+      </div>
+      <div class="playback-controls">
+        <button id="play-pause-btn" class="playback-btn">▶</button>
+      </div>
+      <div class="progress-bar" id="progress-bar">
+        <div class="progress" id="progress"></div>
+        <div class="progress-handle" id="progress-handle"></div>
+      </div>
+      <div class="time-display">
+        <span id="current-time">00:00</span>
+        <span id="total-time">00:00</span>
+      </div>
+    </div>
+
+    <div class="controls-container">
+      <div class="panel">
+        <div class="panel-title">
+          <span>テロップ追加</span>
+          <button id="add-telop-btn" class="btn btn-primary">追加</button>
+        </div>
+        <div class="form-group">
+          <label for="telop-text">テキスト</label>
+          <textarea id="telop-text" placeholder="ここにテキストを入力..."></textarea>
+        </div>
+        <div class="suggestions">
+          <div class="suggestion-item" data-text="今日は素敵な日になりそう✨">今日は素敵な日になりそう✨</div>
+          <div class="suggestion-item" data-text="待ち合わせ場所で彼を待っています💕">待ち合わせ場所で彼を待っています💕</div>
+          <div class="suggestion-item" data-text="この瞬間を大切にしたい🌈">この瞬間を大切にしたい🌈</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">スタイル設定</div>
+        <div class="style-controls">
+          <div class="form-group">
+            <label for="font-family">フォント</label>
+            <select id="font-family">
+              <option value="'Helvetica Neue', Arial, sans-serif">Helvetica</option>
+              <option value="'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif">ヒラギノ角ゴ</option>
+              <option value="'Hiragino Mincho ProN', 'Noto Serif JP', serif">ヒラギノ明朝</option>
+              <option value="'Comic Sans MS', cursive">Comic Sans</option>
+              <option value="'Courier New', monospace">Courier</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="font-size">サイズ</label>
+            <input type="number" id="font-size" value="24" min="8" max="100">
+          </div>
+          <div class="form-group">
+            <label for="text-color">文字色</label>
+            <div class="color-picker">
+              <input type="color" id="text-color" value="#ffffff">
+              <span id="text-color-hex">#ffffff</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="bg-color">背景色</label>
+            <div class="color-picker">
+              <input type="color" id="bg-color" value="#000000">
+              <span id="bg-color-hex">#000000</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="bg-opacity">背景透明度</label>
+            <input type="range" id="bg-opacity" min="0" max="1" step="0.1" value="0.5">
+          </div>
+          <div class="form-group">
+            <label for="text-align">文字揃え</label>
+            <select id="text-align">
+              <option value="left">左揃え</option>
+              <option value="center">中央揃え</option>
+              <option value="right">右揃え</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>位置</label>
+          <div class="position-controls">
+            <button class="position-btn" data-position="top-left">↖</button>
+            <button class="position-btn" data-position="top-center">↑</button>
+            <button class="position-btn" data-position="top-right">↗</button>
+            <button class="position-btn" data-position="middle-left">←</button>
+            <button class="position-btn" data-position="middle-center">⦿</button>
+            <button class="position-btn" data-position="middle-right">→</button>
+            <button class="position-btn" data-position="bottom-left">↙</button>
+            <button class="position-btn" data-position="bottom-center">↓</button>
+            <button class="position-btn" data-position="bottom-right">↘</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">テロップリスト</div>
+        <div class="telop-list" id="telop-list">
+          <!-- テロップリストはJSで動的に生成 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
+    <p>処理中...</p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 動画要素
+      const video = document.getElementById('video');
+      const videoContainer = document.getElementById('video-container');
+      const telopContainer = document.getElementById('telop-container');
+      const canvasContainer = document.getElementById('canvas-container');
+      
+      // コントロール要素
+      const playPauseBtn = document.getElementById('play-pause-btn');
+      const progressBar = document.getElementById('progress-bar');
+      const progress = document.getElementById('progress');
+      const progressHandle = document.getElementById('progress-handle');
+      const currentTimeDisplay = document.getElementById('current-time');
+      const totalTimeDisplay = document.getElementById('total-time');
+      
+      // テロップ編集要素
+      const addTelopBtn = document.getElementById('add-telop-btn');
+      const telopText = document.getElementById('telop-text');
+      const fontFamily = document.getElementById('font-family');
+      const fontSize = document.getElementById('font-size');
+      const textColor = document.getElementById('text-color');
+      const textColorHex = document.getElementById('text-color-hex');
+      const bgColor = document.getElementById('bg-color');
+      const bgColorHex = document.getElementById('bg-color-hex');
+      const bgOpacity = document.getElementById('bg-opacity');
+      const textAlign = document.getElementById('text-align');
+      const positionBtns = document.querySelectorAll('.position-btn');
+      const telopList = document.getElementById('telop-list');
+      const suggestionItems = document.querySelectorAll('.suggestion-item');
+      const exportBtn = document.getElementById('export-btn');
+      const loadingOverlay = document.getElementById('loading-overlay');
+      
+      // Three.js 関連
+      let scene, camera, renderer, canvas;
+      
+      // テロップデータ
+      let telops = [];
+      let selectedTelopId = null;
+      let isDragging = false;
+      let dragStartX, dragStartY;
+      let draggedTelop = null;
+      
+      // 動画のURL
+      const videoUrl = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Professional_Mode_9x16_She_is_waiting_her_boy_friend_to-C20OkfbaaPIWNgXIjMFWTF8dIe7ep9.mp4';
+      
+      // 動画の読み込み
+      video.src = videoUrl;
+      video.load();
+      
+      // 動画のメタデータが読み込まれたときの処理
+      video.addEventListener('loadedmetadata', function() {
+        initThreeJS();
+        updateTimerDisplay();
+      });
+      
+      // 動画の再生状態が変わったときの処理
+      video.addEventListener('play', function() {
+        playPauseBtn.textContent = '❚❚';
+      });
+      
+      video.addEventListener('pause', function() {
+        playPauseBtn.textContent = '▶';
+      });
+      
+      // 動画の時間が更新されたときの処理
+      video.addEventListener('timeupdate', function() {
+        const percent = (video.currentTime / video.duration) * 100;
+        progress.style.width = `${percent}%`;
+        progressHandle.style.left = `${percent}%`;
+        updateTimerDisplay();
+      });
+      
+      // 再生/一時停止ボタンのクリックイベント
+      playPauseBtn.addEventListener('click', function() {
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      });
+      
+      // プログレスバーのクリックイベント
+      progressBar.addEventListener('click', function(e) {
+        const rect = progressBar.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        video.currentTime = pos * video.duration;
+      });
+      
+      // テロップ追加ボタンのクリックイベント
+      addTelopBtn.addEventListener('click', function() {
+        addTelop();
+      });
+      
+      // テキスト入力欄のキーダウンイベント
+      telopText.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+          addTelop();
+        }
+      });
+      
+      // スタイル変更時のイベント
+      fontFamily.addEventListener('change', updateSelectedTelopStyle);
+      fontSize.addEventListener('change', updateSelectedTelopStyle);
+      textColor.addEventListener('input', function() {
+        textColorHex.textContent = textColor.value;
+        updateSelectedTelopStyle();
+      });
+      bgColor.addEventListener('input', function() {
+        bgColorHex.textContent = bgColor.value;
+        updateSelectedTelopStyle();
+      });
+      bgOpacity.addEventListener('input', updateSelectedTelopStyle);
+      textAlign.addEventListener('change', updateSelectedTelopStyle);
+      
+      // 位置ボタンのクリックイベント
+      positionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (selectedTelopId === null) return;
+          
+          const position = btn.dataset.position;
+          const telop = telops.find(t => t.id === selectedTelopId);
+          if (!telop) return;
+          
+          const telopEl = document.getElementById(`telop-${telop.id}`);
+          if (!telopEl) return;
+          
+          // 位置の設定
+          switch (position) {
+            case 'top-left':
+              telop.x = 10;
+              telop.y = 10;
+              break;
+            case 'top-center':
+              telop.x = (videoContainer.clientWidth - telopEl.offsetWidth) / 2;
+              telop.y = 10;
+              break;
+            case 'top-right':
+              telop.x = videoContainer.clientWidth - telopEl.offsetWidth - 10;
+              telop.y = 10;
+              break;
+            case 'middle-left':
+              telop.x = 10;
+              telop.y = (videoContainer.clientHeight - telopEl.offsetHeight) / 2;
+              break;
+            case 'middle-center':
+              telop.x = (videoContainer.clientWidth - telopEl.offsetWidth) / 2;
+              telop.y = (videoContainer.clientHeight - telopEl.offsetHeight) / 2;
+              break;
+            case 'middle-right':
+              telop.x = videoContainer.clientWidth - telopEl.offsetWidth - 10;
+              telop.y = (videoContainer.clientHeight - telopEl.offsetHeight) / 2;
+              break;
+            case 'bottom-left':
+              telop.x = 10;
+              telop.y = videoContainer.clientHeight - telopEl.offsetHeight - 10;
+              break;
+            case 'bottom-center':
+              telop.x = (videoContainer.clientWidth - telopEl.offsetWidth) / 2;
+              telop.y = videoContainer.clientHeight - telopEl.offsetHeight - 10;
+              break;
+            case 'bottom-right':
+              telop.x = videoContainer.clientWidth - telopEl.offsetWidth - 10;
+              telop.y = videoContainer.clientHeight - telopEl.offsetHeight - 10;
+              break;
+          }
+          
+          updateTelopPosition(telop);
+        });
+      });
+      
+      // サジェスションアイテムのクリックイベント
+      suggestionItems.forEach(item => {
+        item.addEventListener('click', function() {
+          telopText.value = item.dataset.text;
+        });
+      });
+      
+      // エクスポートボタンのクリックイベント
+      exportBtn.addEventListener('click', function() {
+        alert('エクスポート機能は現在開発中です。実際のアプリケーションでは、テロップ付きの動画をダウンロードできるようになります。');
+      });
+      
+      // Three.jsの初期化
+      function initThreeJS() {
+        // シーンの作成
+        scene = new THREE.Scene();
+        
+        // カメラの作成
+        const aspect = video.videoWidth / video.videoHeight;
+        camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
+        camera.position.z = 5;
+        
+        // レンダラーの作成
+        renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(video.videoWidth, video.videoHeight);
+        canvas = renderer.domElement;
+        canvasContainer.appendChild(canvas);
+        
+        // レンダリングループの開始
+        animate();
+      }
+      
+      // アニメーションループ
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+      
+      // テロップの追加
+      function addTelop() {
+        const text = telopText.value.trim();
+        if (!text) return;
+        
+        const id = Date.now();
+        const telop = {
+          id,
+          text,
+          fontFamily: fontFamily.value,
+          fontSize: parseInt(fontSize.value),
+          textColor: textColor.value,
+          bgColor: bgColor.value,
+          bgOpacity: parseFloat(bgOpacity.value),
+          textAlign: textAlign.value,
+          x: (videoContainer.clientWidth - 200) / 2,
+          y: (videoContainer.clientHeight - 50) / 2
+        };
+        
+        telops.push(telop);
+        renderTelop(telop);
+        updateTelopList();
+        selectTelop(id);
+        
+        // 入力欄をクリア
+        telopText.value = '';
+      }
+      
+      // テロップのレンダリング
+      function renderTelop(telop) {
+        const telopEl = document.createElement('div');
+        telopEl.id = `telop-${telop.id}`;
+        telopEl.className = 'telop';
+        telopEl.style.fontFamily = telop.fontFamily;
+        telopEl.style.fontSize = `${telop.fontSize}px`;
+        telopEl.style.color = telop.textColor;
+        telopEl.style.backgroundColor = `${telop.bgColor}${Math.round(telop.bgOpacity * 255).toString(16).padStart(2, '0')}`;
+        telopEl.style.textAlign = telop.textAlign;
+        telopEl.style.left = `${telop.x}px`;
+        telopEl.style.top = `${telop.y}px`;
+        telopEl.textContent = telop.text;
+        
+        // ドラッグイベントの設定
+        telopEl.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          selectTelop(telop.id);
+          isDragging = true;
+          draggedTelop = telop;
+          dragStartX = e.clientX - telop.x;
+          dragStartY = e.clientY - telop.y;
+        });
+        
+        telopContainer.appendChild(telopEl);
+      }
+      
+      // マウスの移動イベント
+      document.addEventListener('mousemove', function(e) {
+        if (!isDragging || !draggedTelop) return;
+        
+        const x = e.clientX - dragStartX;
+        const y = e.clientY - dragStartY;
+        
+        // 画面内に収まるように制限
+        const telopEl = document.getElementById(`telop-${draggedTelop.id}`);
+        const maxX = videoContainer.clientWidth - telopEl.offsetWidth;
+        const maxY = videoContainer.clientHeight - telopEl.offsetHeight;
+        
+        draggedTelop.x = Math.max(0, Math.min(x, maxX));
+        draggedTelop.y = Math.max(0, Math.min(y, maxY));
+        
+        updateTelopPosition(draggedTelop);
+      });
+      
+      // マウスアップイベント
+      document.addEventListener('mouseup', function() {
+        isDragging = false;
+        draggedTelop = null;
+      });
+      
+      // テロップの位置更新
+      function updateTelopPosition(telop) {
+        const telopEl = document.getElementById(`telop-${telop.id}`);
+        if (!telopEl) return;
+        
+        telopEl.style.left = `${telop.x}px`;
+        telopEl.style.top = `${telop.y}px`;
+      }
+      
+      // テロップリストの更新
+      function updateTelopList() {
+        telopList.innerHTML = '';
+        
+        telops.forEach(telop => {
+          const item = document.createElement('div');
+          item.className = `telop-item ${telop.id === selectedTelopId ? 'active' : ''}`;
+          
+          const textSpan = document.createElement('span');
+          textSpan.className = 'telop-item-text';
+          textSpan.textContent = telop.text;
+          
+          const actions = document.createElement('div');
+          actions.className = 'telop-actions';
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'btn btn-danger';
+          deleteBtn.textContent = '削除';
+          deleteBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            deleteTelop(telop.id);
+          });
+          
+          actions.appendChild(deleteBtn);
+          item.appendChild(textSpan);
+          item.appendChild(actions);
+          
+          item.addEventListener('click', function() {
+            selectTelop(telop.id);
+          });
+          
+          telopList.appendChild(item);
+        });
+      }
+      
+      // テロップの選択
+      function selectTelop(id) {
+        // 以前の選択を解除
+        if (selectedTelopId !== null) {
+          const prevTelopEl = document.getElementById(`telop-${selectedTelopId}`);
+          if (prevTelopEl) {
+            prevTelopEl.classList.remove('selected');
+          }
+        }
+        
+        selectedTelopId = id;
+        
+        // 新しい選択を適用
+        const telopEl = document.getElementById(`telop-${id}`);
+        if (telopEl) {
+          telopEl.classList.add('selected');
+        }
+        
+        // フォーム値を更新
+        const telop = telops.find(t => t.id === id);
+        if (telop) {
+          telopText.value = telop.text;
+          fontFamily.value = telop.fontFamily;
+          fontSize.value = telop.fontSize;
+          textColor.value = telop.textColor;
+          textColorHex.textContent = telop.textColor;
+          bgColor.value = telop.bgColor;
+          bgColorHex.textContent = telop.bgColor;
+          bgOpacity.value = telop.bgOpacity;
+          textAlign.value = telop.textAlign;
+        }
+        
+        updateTelopList();
+      }
+      
+      // テロップの削除
+      function deleteTelop(id) {
+        const index = telops.findIndex(t => t.id === id);
+        if (index === -1) return;
+        
+        telops.splice(index, 1);
+        
+        const telopEl = document.getElementById(`telop-${id}`);
+        if (telopEl) {
+          telopContainer.removeChild(telopEl);
+        }
+        
+        if (selectedTelopId === id) {
+          selectedTelopId = telops.length > 0 ? telops[0].id : null;
+          if (selectedTelopId !== null) {
+            selectTelop(selectedTelopId);
+          } else {
+            // フォームをリセット
+            telopText.value = '';
+          }
+        }
+        
+        updateTelopList();
+      }
+      
+      // 選択中のテロップのスタイル更新
+      function updateSelectedTelopStyle() {
+        if (selectedTelopId === null) return;
+        
+        const telop = telops.find(t => t.id === selectedTelopId);
+        if (!telop) return;
+        
+        telop.fontFamily = fontFamily.value;
+        telop.fontSize = parseInt(fontSize.value);
+        telop.textColor = textColor.value;
+        telop.bgColor = bgColor.value;
+        telop.bgOpacity = parseFloat(bgOpacity.value);
+        telop.textAlign = textAlign.value;
+        
+        const telopEl = document.getElementById(`telop-${telop.id}`);
+        if (!telopEl) return;
+        
+        telopEl.style.fontFamily = telop.fontFamily;
+        telopEl.style.fontSize = `${telop.fontSize}px`;
+        telopEl.style.color = telop.textColor;
+        telopEl.style.backgroundColor = `${telop.bgColor}${Math.round(telop.bgOpacity * 255).toString(16).padStart(2, '0')}`;
+        telopEl.style.textAlign = telop.textAlign;
+      }
+      
+      // 時間表示の更新
+      function updateTimerDisplay() {
+        currentTimeDisplay.textContent = formatTime(video.currentTime);
+        totalTimeDisplay.textContent = formatTime(video.duration);
+      }
+      
+      // 時間のフォーマット
+      function formatTime(seconds) {
+        if (isNaN(seconds)) return '00:00';
+        
+        const minutes = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        
+        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+      
+      // 初期テロップの追加
+      setTimeout(() => {
+        telopText.value = "待ち合わせ場所で彼を待っています💕";
+        fontFamily.value = "'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif";
+        fontSize.value = 28;
+        textColor.value = "#ffffff";
+        textColorHex.textContent = "#ffffff";
+        bgColor.value = "#ff6b6b";
+        bgColorHex.textContent = "#ff6b6b";
+        bgOpacity.value = 0.7;
+        textAlign.value = "center";
+        addTelop();
+        
+        setTimeout(() => {
+          telopText.value = "今日のデートが楽しみ✨";
+          fontFamily.value = "'Comic Sans MS', cursive";
+          fontSize.value = 32;
+          textColor.value = "#ffffff";
+          textColorHex.textContent = "#ffffff";
+          bgColor.value = "#4dabf7";
+          bgColorHex.textContent = "#4dabf7";
+          bgOpacity.value = 0.6;
+          textAlign.value = "center";
+          addTelop();
+          
+          // 2つ目のテロップを下部に配置
+          const telop = telops[1];
+          const telopEl = document.getElementById(`telop-${telop.id}`);
+          telop.x = (videoContainer.clientWidth - telopEl.offsetWidth) / 2;
+          telop.y = videoContainer.clientHeight - telopEl.offsetHeight - 20;
+          updateTelopPosition(telop);
+        }, 100);
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
+
