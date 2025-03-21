@@ -27,6 +27,8 @@ const telopFont = document.getElementById('telop-font');
 const fontPreview = document.getElementById('font-preview');
 const fontIncreaseBtn = document.getElementById('font-increase-btn');
 const fontDecreaseBtn = document.getElementById('font-decrease-btn');
+const boldBtn = document.getElementById('bold-btn');
+const italicBtn = document.getElementById('italic-btn');
 const positionBtns = document.querySelectorAll('.position-btn');
 const exportBtn = document.getElementById('export-btn');
 const shareBtn = document.getElementById('share-btn');
@@ -53,7 +55,13 @@ const telopPresets = [
   { name: '大見出し', color: '#ffffff', bgColor: '#ff0000', fontSize: '36px', font: 'sans-serif' },
   { name: '小見出し', color: '#ffffff', bgColor: '#0000ff', fontSize: '18px', font: 'sans-serif' },
   { name: '映画風', color: '#ffffff', bgColor: 'transparent', fontSize: '24px', font: 'serif' },
-  { name: 'ポップ', color: '#ff00ff', bgColor: '#00ffff', fontSize: '24px', font: 'cursive' }
+  { name: 'ポップ', color: '#ff00ff', bgColor: '#00ffff', fontSize: '24px', font: 'cursive' },
+  // 若者向けショート動画人気スタイル
+  { name: 'ネオンパープル', color: '#ff00ff', bgColor: '#6600cc', fontSize: '28px', font: 'fantasy' },
+  { name: 'グラデーションオレンジ', color: '#ff9900', bgColor: 'rgba(255, 153, 0, 0.3)', fontSize: '30px', font: '"ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", sans-serif' },
+  { name: 'ゲーミング', color: '#00ff00', bgColor: '#000000', fontSize: '26px', font: 'monospace' },
+  { name: 'TikTok風', color: '#ffffff', bgColor: 'rgba(0, 0, 0, 0.7)', fontSize: '32px', font: '"游ゴシック", "Yu Gothic", YuGothic, sans-serif' },
+  { name: 'バズる見出し', color: '#ff3333', bgColor: 'rgba(255, 255, 255, 0.8)', fontSize: '40px', font: '"メイリオ", Meiryo, sans-serif' }
 ];
 
 // フォントの選択肢
@@ -67,7 +75,13 @@ const fonts = [
   { name: '游明朝', value: '"游明朝", "Yu Mincho", YuMincho, serif' },
   { name: 'メイリオ', value: '"メイリオ", Meiryo, sans-serif' },
   { name: 'ヒラギノ角ゴ', value: '"ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", sans-serif' },
-  { name: 'ヒラギノ明朝', value: '"ヒラギノ明朝 Pro W3", "Hiragino Mincho Pro", serif' }
+  { name: 'ヒラギノ明朝', value: '"ヒラギノ明朝 Pro W3", "Hiragino Mincho Pro", serif' },
+  // 若者向けショート動画人気フォント
+  { name: 'ポップで丸い', value: "'M PLUS Rounded 1c', sans-serif" },
+  { name: 'コミカル', value: "'Comic Sans MS', 'Comic Sans', cursive" },
+  { name: 'クール', value: "'Oswald', sans-serif" },
+  { name: 'カジュアル', value: "'Kosugi Maru', sans-serif" },
+  { name: 'シャープ', value: "'Noto Sans JP', sans-serif" }
 ];
 
 // 初期化
@@ -120,6 +134,11 @@ function init() {
   telopFont.addEventListener('change', updateTelopStyle);
   fontIncreaseBtn.addEventListener('click', increaseFontSize);
   fontDecreaseBtn.addEventListener('click', decreaseFontSize);
+  
+  // フォントスタイルボタンのイベントリスナー
+  boldBtn.addEventListener('click', toggleBold);
+  italicBtn.addEventListener('click', toggleItalic);
+  
   positionBtns.forEach(btn => {
     btn.addEventListener('click', () => positionTelop(btn.dataset.position));
   });
@@ -331,6 +350,8 @@ function addTelop() {
   const bgColor = telopBgColor.value;
   const fontSize = telopFontSize.value + 'px';
   const font = telopFont.value;
+  const fontWeight = boldBtn.classList.contains('active') ? 'bold' : 'normal';
+  const fontStyle = italicBtn.classList.contains('active') ? 'italic' : 'normal';
   
   const telop = {
     id,
@@ -339,6 +360,8 @@ function addTelop() {
     bgColor,
     fontSize,
     font,
+    fontWeight,
+    fontStyle,
     x: 50, // パーセント
     y: 50  // パーセント
   };
@@ -371,6 +394,8 @@ function renderTelop(telop) {
   telopEl.style.backgroundColor = telop.bgColor;
   telopEl.style.fontSize = telop.fontSize;
   telopEl.style.fontFamily = telop.font;
+  telopEl.style.fontWeight = telop.fontWeight;
+  telopEl.style.fontStyle = telop.fontStyle;
   telopEl.style.left = `${telop.x}%`;
   telopEl.style.top = `${telop.y}%`;
   telopEl.style.transform = 'translate(-50%, -50%)';
@@ -450,6 +475,10 @@ function selectTelop(id) {
     telopFontSize.value = parseInt(selectedTelop.fontSize);
     telopFont.value = selectedTelop.font;
     
+    // フォントスタイルボタンの状態を更新
+    boldBtn.classList.toggle('active', selectedTelop.fontWeight === 'bold');
+    italicBtn.classList.toggle('active', selectedTelop.fontStyle === 'italic');
+    
     updateFontPreview();
   }
 }
@@ -486,6 +515,8 @@ function updateTelopStyle() {
   selectedTelop.bgColor = telopBgColor.value;
   selectedTelop.fontSize = telopFontSize.value + 'px';
   selectedTelop.font = telopFont.value;
+  selectedTelop.fontWeight = boldBtn.classList.contains('active') ? 'bold' : 'normal';
+  selectedTelop.fontStyle = italicBtn.classList.contains('active') ? 'italic' : 'normal';
   
   updateFontPreview();
   renderTelop(selectedTelop);
@@ -499,6 +530,8 @@ function updateFontPreview() {
   fontPreview.style.backgroundColor = telopBgColor.value;
   fontPreview.style.fontSize = telopFontSize.value + 'px';
   fontPreview.style.fontFamily = telopFont.value;
+  fontPreview.style.fontWeight = boldBtn.classList.contains('active') ? 'bold' : 'normal';
+  fontPreview.style.fontStyle = italicBtn.classList.contains('active') ? 'italic' : 'normal';
 }
 
 // フォントサイズの増加
@@ -567,6 +600,14 @@ function applyPreset(preset) {
   telopBgColor.value = preset.bgColor;
   telopFontSize.value = parseInt(preset.fontSize);
   telopFont.value = preset.font;
+  
+  // プリセットにフォントスタイルが含まれている場合は適用
+  if (preset.fontWeight) {
+    boldBtn.classList.toggle('active', preset.fontWeight === 'bold');
+  }
+  if (preset.fontStyle) {
+    italicBtn.classList.toggle('active', preset.fontStyle === 'italic');
+  }
   
   updateFontPreview();
   
@@ -784,7 +825,16 @@ function renderToCanvas() {
     const fontSize = parseInt(telop.fontSize) * scaleX;
     
     // フォントとスタイルを設定
-    ctx.font = `${fontSize}px ${telop.font}`;
+    let fontString = '';
+    if (telop.fontStyle === 'italic') {
+      fontString += 'italic ';
+    }
+    if (telop.fontWeight === 'bold') {
+      fontString += 'bold ';
+    }
+    fontString += `${fontSize}px ${telop.font}`;
+    
+    ctx.font = fontString;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
@@ -901,6 +951,18 @@ function formatTime(seconds) {
   seconds = Math.floor(seconds % 60);
   
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// 太字トグル
+function toggleBold() {
+  boldBtn.classList.toggle('active');
+  updateTelopStyle();
+}
+
+// 斜体トグル
+function toggleItalic() {
+  italicBtn.classList.toggle('active');
+  updateTelopStyle();
 }
 
 // ページ読み込み時に初期化

@@ -610,4 +610,37 @@ input[type="color"] {
 
 .upload-area.hidden + #video-container {
   opacity: 1;
+}
+
+.font-style-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.style-btn {
+  padding: 0.3rem 0.7rem;
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.style-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.style-btn.active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+#bold-btn {
+  font-weight: bold;
+}
+
+#italic-btn {
+  font-style: italic;
 } 
