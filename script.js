@@ -61,6 +61,7 @@ let videoUrl = null;
 let imageUrl = null;
 let isPlaying = false;
 let isSeeking = false;
+let currentExtraClasses = '';
 
 // テロップのプリセット
 const telopPresets = [
@@ -77,11 +78,11 @@ const telopPresets = [
   { name: 'TikTok風', color: '#ffffff', bgColor: 'rgba(0, 0, 0, 0.7)', fontSize: '32px', font: '"游ゴシック", "Yu Gothic", YuGothic, sans-serif' },
   { name: 'バズる見出し', color: '#ff3333', bgColor: 'rgba(255, 255, 255, 0.8)', fontSize: '40px', font: '"メイリオ", Meiryo, sans-serif' },
   // 漫画吹き出し風スタイル
-  { name: '普通の会話', color: '#000000', bgColor: '#ffffff', fontSize: '18px', font: "'Comic Sans MS', 'Comic Sans', cursive", fontWeight: 'normal', fontStyle: 'normal' },
-  { name: '叫び声', color: '#ff0000', bgColor: '#ffff00', fontSize: '24px', font: "'Comic Sans MS', 'Comic Sans', cursive", fontWeight: 'bold', fontStyle: 'normal' },
-  { name: '内心の声', color: '#333333', bgColor: '#f0f0f0', fontSize: '16px', font: "'M PLUS Rounded 1c', sans-serif", fontWeight: 'normal', fontStyle: 'italic' },
-  { name: '悪役セリフ', color: '#ffffff', bgColor: '#660000', fontSize: '20px', font: "'Noto Sans JP', sans-serif", fontWeight: 'bold', fontStyle: 'normal' },
-  { name: 'ナレーション', color: '#000080', bgColor: 'rgba(255, 255, 255, 0.7)', fontSize: '18px', font: "'Kosugi Maru', sans-serif", fontWeight: 'normal', fontStyle: 'normal' }
+  { name: '会話（右）', color: '#000000', bgColor: '#ffffff', fontSize: '18px', font: "'Comic Sans MS', 'Comic Sans', cursive", fontWeight: 'normal', fontStyle: 'normal', extraClasses: 'bubble bubble-right' },
+  { name: '会話（左）', color: '#000000', bgColor: '#ffffff', fontSize: '18px', font: "'Comic Sans MS', 'Comic Sans', cursive", fontWeight: 'normal', fontStyle: 'normal', extraClasses: 'bubble bubble-left' },
+  { name: 'モノローグ', color: '#333333', bgColor: '#f0f0f0', fontSize: '16px', font: "'M PLUS Rounded 1c', sans-serif", fontWeight: 'normal', fontStyle: 'italic', extraClasses: 'bubble bubble-top' },
+  { name: '感情（怒り）', color: '#ffffff', bgColor: '#ff0000', fontSize: '24px', font: "'Comic Sans MS', 'Comic Sans', cursive", fontWeight: 'bold', fontStyle: 'normal', extraClasses: 'bubble' },
+  { name: '感情（驚き）', color: '#000000', bgColor: '#ffff00', fontSize: '22px', font: "'Comic Sans MS', 'Comic Sans', cursive", fontWeight: 'bold', fontStyle: 'normal', extraClasses: 'bubble bubble-bottom' }
 ];
 
 // フォントの選択肢
@@ -409,6 +410,14 @@ function renderTelop(telop) {
   const telopEl = document.createElement('div');
   telopEl.id = `telop-${telop.id}`;
   telopEl.className = 'telop';
+  
+  // 追加のクラスがある場合は適用
+  if (telop.extraClasses) {
+    telop.extraClasses.split(' ').forEach(cls => {
+      telopEl.classList.add(cls);
+    });
+  }
+  
   telopEl.textContent = telop.text;
   telopEl.style.color = telop.color;
   telopEl.style.backgroundColor = telop.bgColor;
@@ -560,6 +569,11 @@ function updateTelopStyle() {
   selectedTelop.fontWeight = boldBtn.classList.contains('active') ? 'bold' : 'normal';
   selectedTelop.fontStyle = italicBtn.classList.contains('active') ? 'italic' : 'normal';
   
+  // 追加のクラスがある場合は保存
+  if (currentExtraClasses) {
+    selectedTelop.extraClasses = currentExtraClasses;
+  }
+  
   updateFontPreview();
   renderTelop(selectedTelop);
 }
@@ -652,6 +666,9 @@ function applyPreset(preset) {
   if (preset.fontStyle) {
     italicBtn.classList.toggle('active', preset.fontStyle === 'italic');
   }
+  
+  // 吹き出しスタイルを保存
+  currentExtraClasses = preset.extraClasses || '';
   
   updateFontPreview();
   
